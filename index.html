@@ -432,6 +432,71 @@ body{
 }
 .wskip:hover{color:var(--gold);border-color:var(--gold2)}
 
+/* ============ 沉浸层：熄灯 / 暗适应 / 走动 / 微文案 ============ */
+/* 熄灯：房间压黑 + 暗适应（眼睛慢慢看见） */
+#stage.blackout .st-img{filter:brightness(.06) saturate(.35) contrast(1.12);transition:filter .35s ease}
+#stage.blackout.adapt .st-img{filter:brightness(.24) saturate(.45) contrast(1.08);transition:filter 3.3s ease-out}
+/* 熄灯：拆掉那张卡片 —— 文字浮在无边的黑里 */
+#scene.nolight{
+  background:rgba(0,0,0,.985);
+  border-color:transparent;border-radius:0;box-shadow:none;
+}
+#scene.nolight .blk{color:#5a5f66}
+#scene.nolight .blk.note{border-left-color:rgba(201,162,94,.10);background:none}
+#scene.nolight .blk.note::before,
+#scene.nolight .blk.hit::before,
+#scene.nolight .blk.miss::before{opacity:0}
+/* 熄灯：界面消失 */
+body.lightsout #hud{opacity:.12;transition:opacity .4s ease}
+body.lightsout #planwrap{opacity:0;transition:opacity .4s ease}
+body.lightsout #acts{display:none !important}
+body.lightsout #foot{opacity:0;transition:opacity .4s ease}
+/* 呼吸空圆（替代倒计时环：没有数字、没有进度） */
+#breath{display:none;justify-content:center;margin:30px 0 8px}
+#breath.on{display:flex}
+#breath .orb{
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid rgba(136,146,160,.34);
+  animation:breathe 4.5s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.45}50%{transform:scale(1.06);opacity:.85}}
+/* 门框暗带：走过一道门 */
+#doorbar{
+  position:fixed;top:0;bottom:0;width:18%;background:#000;opacity:0;
+  pointer-events:none;z-index:57;transform:translateX(-130%);
+}
+#doorbar.run{animation:doorsweep .6s linear}
+@keyframes doorsweep{0%{transform:translateX(-130%);opacity:.92}100%{transform:translateX(580%);opacity:.92}}
+/* 环境微文案条：无框、无底、单行 */
+#amb{
+  position:fixed;left:0;right:0;bottom:15%;text-align:center;
+  font-size:11.5px;color:var(--dim);letter-spacing:.08em;
+  opacity:0;pointer-events:none;z-index:58;transition:opacity 1.2s ease;
+}
+#amb.on{opacity:.62}
+/* 熄灯期间的极简提示（松手就前功尽弃） */
+#holdtip{
+  position:fixed;left:0;right:0;bottom:7%;text-align:center;
+  font-size:10px;color:var(--dim);opacity:0;pointer-events:none;z-index:58;
+  transition:opacity .8s ease;letter-spacing:.1em;
+}
+#holdtip.on{opacity:.35}
+/* 叙事时钟 */
+#nclock{
+  font-family:var(--sans);font-size:10.5px;color:var(--gold2);
+  letter-spacing:.14em;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+/* 撒谎：文字错位抖动 */
+.blk.miss.shake{animation:shake .13s linear}
+@keyframes shake{0%{transform:translateX(1.5px)}50%{transform:translateX(-1px)}100%{transform:none}}
+/* 信任柱塌陷 */
+.tl .col.collapse{animation:collapse .58s ease}
+@keyframes collapse{0%{height:0}14%{height:0}100%{height:var(--h)}}
+/* 信任崩塌时全场失焦 */
+#stage.defocus .st-img{filter:blur(2px) !important;transition:filter .3s ease}
+/* 从亮处进暗处：抵达瞬间眼睛还没适应 */
+#stage.arriving .st-img{filter:brightness(.55) !important;transition:filter 1.2s ease-out}
+
 /* ============ 动作 ============ */
 #acts{margin:16px 0 0;display:flex;flex-direction:column;gap:9px}
 .act{
@@ -659,10 +724,13 @@ body{
 </div>
 
 <div id="pane"></div>
+<div id="doorbar"></div>
+<div id="amb"></div>
+<div id="holdtip">松手就前功尽弃</div>
 
 <header id="hud">
   <div class="hud-in">
-    <div class="brand">今晚玻璃还在，但信任碎了<small>DENON · 02:17</small></div>
+    <div class="brand">今晚玻璃还在，但信任碎了<small>DENON · <span id="nclock">02:17</span></small></div>
     <div class="hud-r">
       <div class="gm">
         <span class="gm-num" id="g-num">5.4<i>cm</i></span>
@@ -830,6 +898,7 @@ body{
       <span id="w-txt">你不说话。等着。</span>
       <button class="wskip" id="w-skip">不等了</button>
     </div>
+    <div id="breath"><div class="orb"></div></div>
     <div id="acts"></div>
     <div style="height:26px"></div>
   </section>
@@ -936,7 +1005,7 @@ function rcNext(){
   rcRole.textContent = o.role || '';
   rcCap.textContent = o.cap || '';
   rcEl.classList.add('on');
-  sfxTick();
+  try{ sfxCard(o.img === 'mona' ? 'mona' : (o.age ? 'char' : 'arch')); }catch(e){}
   rcHold = true;
   rcTimer = setTimeout(rcNext, 5600);   /* 不点也会自动过，避免卡死 */
 }
@@ -1872,6 +1941,12 @@ function paintPlan(){
     g.classList.toggle('here', r === here);
     g.classList.remove('tap');
   }
+  /* 行走途中：平面图不带任何直达（否则会点到上一节点的陈旧目标） */
+  if(walking){
+    for(var w=0;w<gs.length;w++){ gs[w].classList.remove('tap'); gs[w].onclick = null; }
+    document.getElementById('planhint').classList.remove('on');
+    return;
+  }
   /* 可直达的房间点亮 */
   var targets = {};
   ACTS.forEach(function(c){ if(c.to && NR[c.to] && NR[c.to] !== here) targets[NR[c.to]] = 1; });
@@ -1905,14 +1980,51 @@ function paintPlan(){
 
 /* ---------------------------------------------------- 行走 */
 var walking = false;
+var WALKTXT = [
+  '你走过挂满画的墙','走廊比刚才长','灯是一盏一盏灭的','你的鞋跟在这儿有回声',
+  '拐角没人','门是虚掩的','这段路没有摄像头','到之前你什么都看不见',
+  '冷，从脚踝上来','你放慢了','前面那间亮着','身后那间暗下去了'
+];
+var AMBTXT = {
+  hall:    ['她的眼睛跟着你','这间房只有她是亮的','玻璃上有今晚的印子','三米。护栏就在这儿','你呼的气在玻璃上停了一下'],
+  cctv:    ['六块屏幕，五个死角','1:43 那段是空的','这里冷气开得最足','他没抬头','屏幕反光里能看见你'],
+  restore: ['灯只照桌面那一块','空气里有浮尘','松节油味压过消毒水','台面上有只空杯子','她说别碰，声音很轻'],
+  office:  ['台灯亮着，桌子是热的','桌上是明年的预算','有两把椅子，一把还热','屏幕朝里，你看不见','抽屉没关严'],
+  corridor:['这间房不在平面图','地上有两趟脚印','一进一出，不是一个人','应急灯在最头上','你数了步子：十一'],
+  center:  ['四个人，一盏灯','他们互相不看','你站在中间','谁先开口谁吃亏','地上四道影子'],
+  exit:    ['这是全场最亮的地方','只有一张纸，一支笔','写完就换不回来','你的手在纸上停了一下']
+};
+function pickOne(a){ return a[Math.floor(Math.random() * a.length)]; }
+
 function walkTo(room, cb){
   var me = document.getElementById('me');
   var R = RINFO[room] || RINFO.hall;
   me.style.transform = 'translate(' + R.x + 'px,' + R.y + 'px)';
-  sfxStep();
   walking = true;
-  setTimeout(function(){ walking = false; if(cb) cb(); }, 480);
+  paintPlan();                    /* 立刻收掉直达标记：行走中不许点房间 */
+  /* 三拍：走近 → 门框扫过 → 落位。走一趟走廊不该是 480 毫秒 */
+  /* 音频一律 try 保护：任何声音失败都不能中断叙事链 */
+  try{ sfxFoot(0); }catch(e){}
+  showAmb(pickOne(WALKTXT), 1200);
+  walkTimers.push(setTimeout(function(){ try{ sfxFoot(1); }catch(e){} }, 380));
+  walkTimers.push(setTimeout(function(){
+    var bar = document.getElementById('doorbar');
+    bar.classList.add('run');
+    try{ sfxDoor(); }catch(e){}
+    setTimeout(function(){ bar.classList.remove('run'); }, 620);
+  }, 740));
+  walkTimers.push(setTimeout(function(){
+    walking = false;
+    /* 从亮处进暗处，眼睛要适应：抵达瞬间先比最终值亮一点 */
+    var dark = (room === 'corridor');
+    if(dark){
+      stageEl.classList.add('arriving');
+      setTimeout(function(){ stageEl.classList.remove('arriving'); }, 1200);
+    }
+    if(cb) cb();
+  }, 1500));
 }
+var walkTimers = [];
 
 /* ---------------------------------------------------- 文本揭示 */
 var waitRaf = null, waitLeft = 0, waitTotal = 0;
@@ -1920,7 +2032,49 @@ function clearReveal(){
   revealTimers.forEach(function(t){ clearTimeout(t); });
   revealTimers = [];
   if(waitRaf){ clearInterval(waitRaf); waitRaf = null; }
+  if(actsTimer){ clearTimeout(actsTimer); actsTimer = null; }
+  if(holdState){ holdState.finish(true); }
   document.getElementById('waithud').classList.remove('on');
+  document.getElementById('breath').classList.remove('on');
+  document.getElementById('holdtip').classList.remove('on');
+  lightsOut(false);
+}
+
+/* ---------------------------------------------------- 沉浸层：小工具 */
+var actsTimer = null;
+function lightsOut(on){
+  var b = document.body;
+  b.classList.toggle('lightsout', !!on);
+  stageEl.classList.toggle('blackout', !!on);
+  document.getElementById('scene').classList.toggle('nolight', !!on);
+  if(!on) stageEl.classList.remove('adapt', 'defocus');
+}
+function buzz(p){
+  if(!navigator.vibrate) return;              /* iOS 不支持：静默跳过 */
+  try{ navigator.vibrate(p); }catch(e){}
+}
+/* 环境微文案：无框、无底、单行，每次只出一条 */
+var ambTimer = null;
+function showAmb(txt, stay){
+  var el = document.getElementById('amb');
+  if(ambTimer){ clearTimeout(ambTimer); ambTimer = null; }
+  el.textContent = txt;
+  el.classList.add('on');
+  ambTimer = setTimeout(function(){ el.classList.remove('on'); }, stay || 3400);
+}
+/* 叙事时钟：只在换房 / 熄灯 / 对质 / 落笔时跳，不与真实时间同步 */
+var NMIN = 137;                                /* 02:17 */
+function tickClock(addMin){
+  NMIN += (addMin || 6);
+  if(NMIN > 239) NMIN = 239;
+  var el = document.getElementById('nclock');
+  if(el) el.textContent = '0' + Math.floor(NMIN / 60) + ':' + ('0' + (NMIN % 60)).slice(-2);
+}
+/* 叙事时钟随存档走 */
+function clockFromSteps(){
+  NMIN = Math.min(239, 137 + Math.round((S.steps || 0) * 1.8));
+  var el = document.getElementById('nclock');
+  if(el) el.textContent = '0' + Math.floor(NMIN / 60) + ':' + ('0' + (NMIN % 60)).slice(-2);
 }
 function reveal(els, slowSec){
   if(!slowSec){
@@ -1929,31 +2083,93 @@ function reveal(els, slowSec){
     });
     return;
   }
-  var n = els.length, per = Math.max(240, slowSec * 1000 / Math.max(1, n));
-  els.forEach(function(el, i){
-    var silent = el.classList.contains('gap');
-    revealTimers.push(setTimeout(function(){
-      el.classList.add('in');
-      if(!silent) sfxTick();
-    }, i * per));
-  });
-  /* 等待环 */
+  /* 熄灯期间不给任何新的视觉信息 —— 灯灭了，你只剩听觉。
+     文本只在灯回来的那一刻才浮现（见 startHold → lightsBack）。 */
+  /* ── 熄灯：不是等一个进度环，是用手指忍住 ── */
   var wh = document.getElementById('waithud');
-  wh.classList.add('on');
-  waitTotal = slowSec; waitLeft = slowSec;
-  var fg = document.getElementById('w-fg');
-  var C = 69.1;
-  var step = 120;
-  waitRaf = setInterval(function(){
-    waitLeft -= step / 1000;
-    var p = Math.max(0, waitLeft / waitTotal);
-    fg.style.strokeDashoffset = (C * (1 - p)).toFixed(1);
-    document.getElementById('w-txt').textContent =
-      waitLeft > 0 ? '你不说话。等着。 ' + Math.ceil(waitLeft) + 's' : '他先开口了。';
-    if(waitLeft <= 0){ clearInterval(waitRaf); waitRaf = null; }
-  }, step);
-  fg.style.strokeDashoffset = '0';
-  document.getElementById('w-txt').textContent = '你不说话。等着。';
+  wh.classList.remove('on');
+  document.getElementById('breath').classList.add('on');
+  var tipEl = document.getElementById('holdtip');
+  tipEl.textContent = '按住 · 松手就前功尽弃';
+  tipEl.classList.add('on');
+  lightsOut(true);
+  buzz(35);                                   /* 全剧第 1 次震动：灯灭的一下 */
+  audioSilenceEnter(slowSec);
+
+  /* 暗适应：0.5s 后，眼睛慢慢开始看见（3.3s） */
+  revealTimers.push(setTimeout(function(){ stageEl.classList.add('adapt'); }, 500));
+  /* 熄灯期间只有三句话，加起来十四个字 */
+  [[300,'灯没了',1600],[2000,'现在只剩你听见的',1200],[5000,'别出声',1000]].forEach(function(a){
+    revealTimers.push(setTimeout(function(){ showAmb(a[1], a[2]); }, a[0]));
+  });
+
+  startHold(slowSec * 1000, els);
+}
+
+/* ---------------------------------------------------- 熄灯：按住不放 */
+var holdState = null;
+function startHold(ms, els){
+  var done = false, pressTimer = null, mainTimer = null, graceTimer = null;
+  var ARM = 2000;                 /* 给你两秒把手指放上来 */
+  var tipEl = document.getElementById('holdtip');
+
+  function lightsBack(broke){
+    document.getElementById('breath').classList.remove('on');
+    tipEl.classList.remove('on');
+    lightsOut(false);
+    audioSilenceExit();
+    var n = els.length;
+    var withhold = broke && n > 1;             /* 你先开口了 —— 那半句没拿到 */
+    els.forEach(function(el, i){
+      if(withhold && i === n - 1) return;
+      revealTimers.push(setTimeout(function(){
+        el.classList.add('in');
+        if(!broke) sfxConfess();
+      }, broke ? Math.min(i * 90, 700) : i * 1100));
+    });
+    if(broke) showAmb('你先开口了', 1500);
+    else tickClock(60);                        /* 沉默是这夜里最贵的时间 */
+  }
+  function finish(broke){
+    if(done) return; done = true;
+    [pressTimer, mainTimer, graceTimer].forEach(function(t){ if(t) clearTimeout(t); });
+    holdState = null;
+    detachHold();
+    lightsBack(broke);
+  }
+  function onDown(e){
+    if(done) return;
+    if(graceTimer){ clearTimeout(graceTimer); graceTimer = null; }
+    if(!holdState){ return; }
+    if(!holdState.holding){
+      holdState.holding = true;
+      if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; }
+      mainTimer = setTimeout(function(){ finish(false); }, ms);
+      audioSilenceDeepen();
+    }
+  }
+  function onUp(e){
+    if(done || !holdState || !holdState.holding) return;
+    /* 0.35s 宽限：手滑不等于放弃 */
+    graceTimer = setTimeout(function(){ finish(true); }, 350);
+  }
+  function detachHold(){
+    document.removeEventListener('touchstart', onDown, true);
+    document.removeEventListener('touchend', onUp, true);
+    document.removeEventListener('touchcancel', onUp, true);
+    document.removeEventListener('mousedown', onDown, true);
+    document.removeEventListener('mouseup', onUp, true);
+  }
+  document.addEventListener('touchstart', onDown, true);
+  document.addEventListener('touchend', onUp, true);
+  document.addEventListener('touchcancel', onUp, true);
+  document.addEventListener('mousedown', onDown, true);
+  document.addEventListener('mouseup', onUp, true);
+
+  holdState = {holding:false, els:els};
+  pressTimer = setTimeout(function(){ if(!done && !holdState.holding) finish(true); }, ARM);
+  holdState.detach = detachHold;
+  holdState.finish = finish;
 }
 function skipWait(){
   clearReveal();
@@ -2000,6 +2216,7 @@ function paint(out){
 
   var acts = document.getElementById('acts');
   acts.innerHTML = '';
+  var frag = document.createDocumentFragment();
   ACTS.forEach(function(c, i){
     var b = document.createElement('button');
     var isMove = c.to && NR[c.to] && NR[c.to] !== NR[S.cur];
@@ -2019,14 +2236,36 @@ function paint(out){
       b.appendChild(mv);
     }
     b.addEventListener('click', function(){ pick(c); });
-    acts.appendChild(b);
+    frag.appendChild(b);
   });
+  /* 进门三秒，先把嘴闭上：先让房间存在，再给可点的东西 */
+  actsTimer = setTimeout(function(){ acts.appendChild(frag); actsTimer = null; }, 1600);
 
   hud(); paintPlan();
   paintStage(NR[S.cur] || S.room || 'hall', S.light);
+  ambSet(NR[S.cur] || S.room || 'hall');   /* 房间底噪跟着人走 */
+  sndSync();                                /* 音景随剧情演化 */
+  /* 抵达：先给一个物理事实，不给文字 */
+  if(!P[S.cur].slow){
+    var ambList = AMBTXT[NR[S.cur] || S.room || 'hall'];
+    if(ambList) ambTimer2 = setTimeout(function(){ showAmb(pickOne(ambList), 4200); }, 1500);
+  }
   reveal(els, P[S.cur].slow || 0);
-  if(navigator.vibrate && P[S.cur].slow) { try{ navigator.vibrate(8); }catch(e){} }
+  /* 撒谎：先让身体咯噔一下，再让脑子知道 */
+  var misses = sc.querySelectorAll('.blk.miss');
+  revealTimers.push(setTimeout(function(){
+    for(var mi = 0; mi < misses.length; mi++){
+      (function(el, k){
+        setTimeout(function(){
+          el.classList.add('shake');
+          audioLie();
+          setTimeout(function(){ el.classList.remove('shake'); }, 200);
+        }, k * 60);
+      })(misses[mi], mi);
+    }
+  }, 900));
 }
+var ambTimer2 = null;
 
 function paintLater(out){
   setTimeout(function(){ paint(out); }, 420);
@@ -2037,6 +2276,7 @@ function go(id){
   if(!P[id]) id = '01';
   var prevRoom = NR[S.cur] || 'hall';
   var nextRoom = NR[id] || 'hall';
+  try{ if(nextRoom === 'corridor' && nextRoom !== prevRoom) sfxCorridor(); }catch(e){}
   S.cur = id;
   S.visits[id] = (S.visits[id] || 0) + 1;
   var steps = 0;
@@ -2081,19 +2321,31 @@ function paintEmpty(out){
     P[S.cur].act + '　·　' + (RINFO[NR[S.cur]] || RINFO.hall).n;
 }
 
+function negCount(){
+  var v = S.v;
+  return [v.trustIlya, v.trustAda, v.trustHenry, v.trustMarcus].filter(function(t){ return t < 0; }).length;
+}
 function pick(c){
+  /* 音景：先记下决策前的状态，渲染后 diff 出「矛盾」与「崩塌」两件事 */
+  var _c0 = S.v.contradiction || 0, _n0 = negCount();
   if(ENDINGS[c.to]) sfxEnd();
   /* 记录这次用的什么光 —— 房间会随之染上对应的色温 */
   var isMove = c.to && NR[c.to] && NR[c.to] !== NR[S.cur];
   if(isMove)            S.light = null;
   else if(c.m)          S.light = c.m;
+  try{ if(!isMove && c.m) sfxLight(c.m); }catch(e){}
   go(c.to);
+  try{
+    if((S.v.contradiction || 0) > _c0) audioContradiction();
+    if(negCount() > _n0) audioCollapse();
+  }catch(e){}
 }
 
 /* ---------------------------------------------------- 结局页 */
 function showEnding(){
   var k = S.ending || 'A';
   var g = S.v.glass;
+  try{ sfxWrite(); setTimeout(sfxPaper, 1500); }catch(e){}   /* E11 落笔 */
   document.getElementById('eg-num').innerHTML = g.toFixed(1) + '<i>cm</i>';
   var layers = g < 5.6 ? 4 : (g < 6.0 ? 5 : 6);
   var lyrs = document.querySelectorAll('#eg .lyr');
@@ -2134,47 +2386,482 @@ function showEnding(){
   document.getElementById('pane').style.setProperty('--gop', (0.3 + Math.max(0,(g-5.4)/0.9) * 0.5).toFixed(3));
 }
 
-/* ---------------------------------------------------- 声音 */
-var AC = null, droneOn = false, droneNodes = null;
+/* ==================================================== 声音：程序化音景
+   零外部依赖。总线 / 玻璃滤镜 / 张力层 / 七间房音床 / 事件音效。
+   任何一处失败都必须静默降级 —— 声音永远不能中断叙事。          */
+var AC = null, SND_READY = false, SND_ON = true;
+var M=null, LIM=null, WM=null, DRY=null, RET=null, CONV=null, PRELP=null, PREDLY=null;
+var GLP=null, GHS=null, NOTCH=null;
+var BB=null, TB=null, SB=null, IB=null;
+var NBW=null, NBB=null;
+var TEN=null, BED=null, BEDROOM=null, SIXTY=null;
+var SNDST = {glass:5.4, sil:0, contra:0, T:0, prog:0, trustMin:0, negN:0};
+
+/* 七间房的听觉性格 */
+var ROOMP = {
+  hall:    {sole:1650, verb:0.62, retLP:4200, pre:0.030, rumble:0.030, air:0.026, hum:0},
+  cctv:    {sole:2100, verb:0.10, retLP:6500, pre:0.004, rumble:0,     air:0.016, hum:0.014},
+  restore: {sole:1280, verb:0.30, retLP:3200, pre:0.012, rumble:0,     air:0.012, hum:0},
+  office:  {sole:1250, verb:0.24, retLP:3600, pre:0.014, rumble:0,     air:0.014, hum:0.010},
+  corridor:{sole:1720, verb:0.72, retLP:2400, pre:0.034, rumble:0.020, air:0.034, hum:0},
+  center:  {sole:1620, verb:0.55, retLP:4000, pre:0.026, rumble:0.026, air:0.022, hum:0},
+  exit:    {sole:1450, verb:0.16, retLP:5200, pre:0.008, rumble:0,     air:0.010, hum:0}
+};
+
 function ac(){
   if(AC) return AC;
   try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ AC = null; }
   return AC;
 }
-function startDrone(){
-  var c = ac(); if(!c || droneOn) return;
-  if(c.state === 'suspended') c.resume();
-  var g = c.createGain(); g.gain.value = 0; g.connect(c.destination);
-  var a = c.createOscillator(); a.type='sine'; a.frequency.value = 55;
-  var b = c.createOscillator(); b.type='sine'; b.frequency.value = 82.5;
-  var lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 320;
-  a.connect(lp); b.connect(lp); lp.connect(g);
-  a.start(); b.start();
-  g.gain.linearRampToValueAtTime(0.035, c.currentTime + 3);
-  droneOn = true; droneNodes = {a:a,b:b,g:g};
+function flt(t, f, q){ var b = AC.createBiquadFilter(); b.type = t; b.frequency.value = f; if(q != null) b.Q.value = q; return b; }
+function gn(v){ var g = AC.createGain(); g.gain.value = (v == null ? 0 : v); return g; }
+function ramp(p, t, d){
+  if(!p || !AC) return;
+  try{ var n = AC.currentTime; p.cancelScheduledValues(n); p.setValueAtTime(p.value, n); p.linearRampToValueAtTime(t, n + d); }catch(e){}
 }
-function stopDrone(){
-  if(!droneNodes || !AC) return;
-  try{ droneNodes.g.gain.linearRampToValueAtTime(0, AC.currentTime + 0.6); }catch(e){}
-  var d = droneNodes;
-  setTimeout(function(){ try{ d.a.stop(); d.b.stop(); }catch(e){} }, 800);
-  droneOn = false; droneNodes = null;
+/* 一次性发声：t 到点后自动 stop + disconnect，绝不留下悬挂节点 */
+function once(node, dur){
+  try{ node.stop(AC.currentTime + dur + 0.05); }catch(e){}
+  setTimeout(function(){ try{ node.disconnect(); }catch(e){} }, (dur + 0.3) * 1000);
 }
-function blip(freq, dur, type, vol){
-  var c = ac(); if(!c || !droneOn) return;
+function ads(g, t0, a, s, r, peak){
   try{
-    var o = c.createOscillator(), g = c.createGain();
-    o.type = type || 'sine'; o.frequency.value = freq;
-    g.gain.setValueAtTime(0, c.currentTime);
-    g.gain.linearRampToValueAtTime(vol || 0.06, c.currentTime + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + (dur || 0.2));
-    o.connect(g); g.connect(c.destination);
-    o.start(); o.stop(c.currentTime + (dur || 0.2) + 0.05);
+    var p = Math.max(0.0002, peak);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(p, t0 + a);
+    if(s) g.gain.setValueAtTime(p, t0 + a + s);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + (s || 0) + r);
   }catch(e){}
 }
-function sfxStep(){ blip(140, 0.13, 'sine', 0.045); }
-function sfxTick(){ blip(1180, 0.05, 'sine', 0.022); }
-function sfxEnd(){ blip(196, 1.6, 'sine', 0.09); setTimeout(function(){ blip(147, 2.2, 'sine', 0.07); }, 320); }
+/* 一个事件音效：振荡器成分 */
+function osc(o){
+  if(!SND_READY || !SND_ON) return;
+  try{
+    var t0 = AC.currentTime + (o.at || 0);
+    var g = gn(0), n = AC.createOscillator();
+    n.type = o.type || 'sine';
+    n.frequency.setValueAtTime(o.f0, t0);
+    if(o.f1) n.frequency.exponentialRampToValueAtTime(Math.max(1, o.f1), t0 + (o.fT || 0.09));
+    if(o.wave){ try{ n.setPeriodicWave(o.wave); }catch(e){} }
+    n.connect(g);
+    ads(g, t0, o.a || 0.003, o.s || 0, o.d || 0.12, o.peak || 0.05);
+    sndOut(panNode(g, o.pan), o.send || 0, o.dest);
+    n.start(t0); once(n, (o.at || 0) + (o.a || 0.003) + (o.s || 0) + (o.d || 0.12));
+  }catch(e){}
+}
+/* 一个事件音效：噪声成分 */
+function nz(o){
+  if(!SND_READY || !SND_ON) return;
+  try{
+    var t0 = AC.currentTime + (o.at || 0);
+    var s = AC.createBufferSource();
+    s.buffer = (o.brown ? NBB : NBW); s.loop = true;
+    var g = gn(0), f = flt(o.type || 'bandpass', o.f0, o.q == null ? 1 : o.q);
+    s.connect(f); f.connect(g);
+    if(o.f1) { try{ f.frequency.setValueAtTime(o.f0, t0); f.frequency.exponentialRampToValueAtTime(Math.max(30, o.f1), t0 + (o.fT || 0.2)); }catch(e){} }
+    ads(g, t0, o.a || 0.002, o.s || 0, o.d || 0.05, o.peak || 0.03);
+    sndOut(panNode(g, o.pan), o.send || 0, o.dest);
+    s.start(t0); once(s, (o.at || 0) + (o.a || 0.002) + (o.s || 0) + (o.d || 0.05));
+  }catch(e){}
+}
+/* 可选声像：钟表 / 脚步要靠左右差把「房间」撑成立体的 */
+function panNode(g, p){
+  if(!p) return g;
+  try{
+    if(AC.createStereoPanner){ var s = AC.createStereoPanner(); s.pan.value = Math.max(-1, Math.min(1, p)); g.connect(s); return s; }
+  }catch(e){}
+  return g;
+}
+/* 送一路进房间（含混响 send），并可选旁路玻璃（亲密层） */
+function sndOut(g, send, dest){
+  try{
+    if(dest === 'int'){ g.connect(IB); return; }
+    g.connect(dest === 'ten' ? TB : SB);
+    if(send > 0){ var s = gn(send); g.connect(s); s.connect(PRELP); }
+  }catch(e){}
+}
+function makeIR(){
+  try{
+    var sr = AC.sampleRate, dur = 2.80, pre = 0.022;
+    var len = Math.max(1, (sr * dur) | 0), p0 = (sr * pre) | 0;
+    var buf = AC.createBuffer(2, len, sr);
+    var alpha = 1 - Math.exp(-2 * Math.PI * 3400 / sr);
+    var taps = [[13,0.55],[21,0.44],[31,0.36],[47,0.28],[68,0.21],[91,0.15]];
+    for(var ch = 0; ch < 2; ch++){
+      var d = buf.getChannelData(ch), last = 0;
+      for(var i = p0; i < len; i++){
+        var x = (i - p0) / (len - p0);
+        var e = Math.pow(1 - x, 2.60);
+        var v = (Math.random() * 2 - 1) * e;
+        last += alpha * (v - last);
+        d[i] = last * 0.55;
+      }
+      for(var t = 0; t < taps.length; t++){
+        var idx = (p0 + (taps[t][0] / 1000) * sr) | 0;
+        if(idx < len) d[idx] += taps[t][1] * (ch ? 0.86 : 1.0);
+      }
+    }
+    return buf;
+  }catch(e){ return null; }
+}
+function noiseBuf(brown){
+  try{
+    var sr = AC.sampleRate, len = (sr * 3) | 0;
+    var b = AC.createBuffer(1, len, sr), d = b.getChannelData(0), last = 0;
+    for(var i = 0; i < len; i++){
+      var w = Math.random() * 2 - 1;
+      if(brown){ last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; }
+      else d[i] = w;
+    }
+    return b;
+  }catch(e){ return null; }
+}
+
+/* ---------- 开机建图（首次进入游戏时，属用户手势内） ---------- */
+function startDrone(){
+  var c = ac(); if(!c || SND_READY) return;
+  try{ if(c.state === 'suspended') c.resume(); }catch(e){}
+  try{
+    M = gn(SND_ON ? 0.9 : 0);
+    LIM = AC.createDynamicsCompressor();
+    try{ LIM.threshold.value = -10; LIM.knee.value = 8; LIM.ratio.value = 4; LIM.attack.value = 0.005; LIM.release.value = 0.30; }catch(e){}
+    /* 玻璃滤镜：世界的宽度由它决定 */
+    GLP = flt('lowpass', 16000, 0.7);
+    GHS = flt('highshelf', 3200, 0.7); try{ GHS.gain.value = 0; }catch(e){}
+    NOTCH = flt('notch', 1046, 1.6); try{ NOTCH.Q.value = 1.6; }catch(e){}
+    WM = gn(1);
+    GLP.connect(NOTCH); NOTCH.connect(GHS); GHS.connect(WM);
+    IB = gn(1); IB.connect(WM);                    /* 亲密层旁路玻璃 */
+    WM.connect(M); M.connect(LIM); LIM.connect(AC.destination);
+
+    BB = gn(1); TB = gn(1); SB = gn(1);
+    BB.connect(GLP); TB.connect(GLP); SB.connect(GLP);
+    DRY = gn(1); DRY.connect(GLP);
+
+    CONV = AC.createConvolver();
+    var ir = makeIR(); if(ir) CONV.buffer = ir;
+    PRELP = flt('lowpass', 4200, 0.7);
+    PREDLY = AC.createDelay(0.1); try{ PREDLY.delayTime.value = 0.030; }catch(e){}
+    RET = gn(0.45);
+    PRELP.connect(PREDLY); PREDLY.connect(CONV); CONV.connect(RET); RET.connect(GLP);
+
+    NBW = noiseBuf(false); NBB = noiseBuf(true);
+
+    /* L1 张力层：3 个源，只改参数不 start/stop */
+    TEN = {};
+    TEN.root = AC.createOscillator(); TEN.root.type = 'sine'; TEN.root.frequency.value = 98.00;
+    TEN.rg = gn(0.045); TEN.root.connect(TEN.rg); TEN.rg.connect(TB);
+    TEN.beat = AC.createOscillator(); TEN.beat.type = 'sine'; TEN.beat.frequency.value = 98.35;
+    TEN.bg = gn(0.030); TEN.beat.connect(TEN.bg); TEN.bg.connect(TB);
+    TEN.sheen = AC.createOscillator(); TEN.sheen.type = 'sine'; TEN.sheen.frequency.value = 1174.7;
+    TEN.sg = gn(0); TEN.sheen.connect(TEN.sg); TEN.sg.connect(TB);
+    TEN.root.start(); TEN.beat.start(); TEN.sheen.start();
+
+    SND_READY = true;
+    ambSet(BEDROOM || 'hall');
+  }catch(e){ SND_READY = false; }
+}
+function stopDrone(){
+  if(!SND_READY) return;
+  try{ ramp(M.gain, 0, 0.6); }catch(e){}
+}
+function setMute(on){
+  SND_ON = !on;
+  if(SND_READY) try{ ramp(M.gain, SND_ON ? 0.9 : 0, 0.4); }catch(e){}
+}
+
+/* ---------- 房间音床 ---------- */
+function ambSet(room){
+  if(!SND_READY) { BEDROOM = room; return; }
+  if(BEDROOM === room && BED) return;
+  BEDROOM = room;
+  var p = ROOMP[room] || ROOMP.hall;
+  try{
+    if(BED){ var old = BED; ramp(old.g.gain, 0, 1.6); setTimeout(function(){ try{ old.g.disconnect(); old.n && old.n.disconnect(); }catch(e){} }, 1900); }
+    var g = gn(0), nodes = {g:g, n:[]};
+    if(p.rumble){ var r = AC.createBufferSource(); r.buffer = NBB; r.loop = true;
+      var rf = flt('lowpass', 120, 0.7); r.connect(rf); rf.connect(g); r.start(); nodes.n.push(r); }
+    if(p.air){ var a = AC.createBufferSource(); a.buffer = NBW; a.loop = true;
+      var af = flt('bandpass', 780, 0.7); a.connect(af); af.connect(g); a.start(); nodes.n.push(a); }
+    if(p.hum){ var h = AC.createOscillator(); h.type = 'sine'; h.frequency.value = 100;
+      var h2 = AC.createOscillator(); h2.type = 'sine'; h2.frequency.value = 150;
+      var hg = gn(p.hum); h.connect(hg); h2.connect(hg); hg.connect(g); h.start(); h2.start(); nodes.n.push(h, h2); }
+    g.connect(BB);
+    ramp(g.gain, p.rumble + p.air + p.hum > 0 ? 0.08 : 0.03, 1.8);
+    var s = gn(p.verb); g.connect(s); s.connect(PRELP);
+    BED = nodes;
+    ramp(PRELP.frequency, p.retLP, 1.2);
+    try{ ramp(PREDLY.delayTime, p.pre, 1.2); }catch(e){}
+  }catch(e){}
+}
+
+/* ---------- 随剧情演化：paint() 末尾调用 ---------- */
+var SNDSYNCING = false;
+function sndSync(){
+  if(!SND_READY || !SND_ON) return;
+  if(SNDSYNCING) return;
+  SNDSYNCING = true; setTimeout(function(){ SNDSYNCING = false; }, 250);
+  try{
+    var v = S.v, trusts = [v.trustIlya, v.trustAda, v.trustHenry, v.trustMarcus];
+    var tmin = Math.min.apply(null, trusts);
+    var negN = trusts.filter(function(t){ return t < 0; }).length;
+    var prog = Math.max(0, Math.min(1, ((S.steps || 0) - 6) / 20));
+    var trustDepth = Math.max(0, Math.min(1, (0 - tmin) / 1.0));
+    var trustNegN = Math.max(0, Math.min(1, negN / 2));
+    var contra = Math.max(0, Math.min(1, (v.contradiction || 0) / 3));
+    var sil = Math.max(0, Math.min(1, (v.silence || 0) / 3));
+    var T = Math.max(0, Math.min(1, 0.20 * prog + 0.32 * trustDepth + 0.22 * trustNegN + 0.26 * contra));
+    SNDST = {glass:v.glass || 5.4, sil:sil, contra:v.contradiction || 0, T:T, prog:prog, trustMin:tmin, negN:negN};
+
+    /* 拍频：全剧最重要的一个振荡器 */
+    var beatHz = 0.35 + 2.75 * trustDepth;
+    ramp(TEN.beat.frequency, 98.00 + beatHz, 5.0);
+    ramp(TEN.rg.gain, 0.045 + 0.010 * T, 5.0);
+
+    /* 矛盾：永久的伤疤 */
+    var c = v.contradiction || 0;
+    ramp(TEN.sg.gain, c >= 3 ? 0.008 : c === 2 ? 0.005 : c === 1 ? 0.003 : 0, 5.0);
+    try{ NOTCH.frequency.value = 1046; ramp(NOTCH.Q, c >= 3 ? 1.1 : 1.6, 5.0); }catch(e){}
+
+    /* 空间塌缩轴：越沉默，世界越远、自己越近 */
+    ramp(BB.gain, 1.00 - 0.58 * sil, 6.0);
+    ramp(RET.gain, 0.45 - 0.15 * sil, 6.0);
+    ramp(PRELP.frequency, (ROOMP[BEDROOM] || ROOMP.hall).retLP + 440 * prog, 10.0);
+
+    /* 玻璃：题眼。跟着 v.glass 走 8 秒 ramp，绝不瞬间跳 */
+    var g01 = Math.max(0, Math.min(1, ((v.glass || 5.4) - 5.4) / 0.7));
+    var cut = 16000 * Math.pow(0.155, g01);
+    ramp(GLP.frequency, Math.max(240, cut - 900 * sil), 8.0);
+    try{ ramp(GHS.gain, -6.5 * g01, 8.0); }catch(e){}
+    ramp(GLP.Q, g01 > 0.85 ? 1.1 : 0.7, 8.0);
+  }catch(e){}
+}
+
+/* ---------- 事件音效 ---------- */
+function sfxStep(){}
+function sfxTick(){ /* 逐句揭示：笔尖浮尘 + 五声音阶 */
+  if(!SND_READY || !SND_ON) return;
+  var p = [1046.50, 1174.66, 1318.51, 1567.98, 1760.00];
+  var f = p[(SNDTICK = (SNDTICK || 0) + 1) % 5];
+  nz({f0:2600, q:3.2, a:0.002, d:0.055, peak:0.030, send:0.18});
+  osc({f0:f, a:0.003, d:0.22, peak:0.014, send:0.18});
+}
+var SNDTICK = 0;
+/* E1 三声脚步 */
+function sfxFoot(i){
+  if(!SND_READY || !SND_ON) return;
+  var p = ROOMP[BEDROOM] || ROOMP.hall;
+  var g = [0.85, 1.00, 0.72][i] || 1;
+  var j = (Math.random() - 0.5) * 0.036;
+  osc({f0:118 * (0.94 + Math.random() * 0.12), f1:62, fT:0.09, a:0.002, d:0.10, peak:0.130 * g, send:p.verb, at:j});
+  nz({f0:p.sole * (0.94 + Math.random() * 0.12), q:1.1, a:0.001, d:0.035, peak:0.045 * g, send:p.verb, at:j});
+  if(i !== 1 && BEDROOM !== 'restore') nz({f0:4200, q:2.0, a:0.0008, d:0.018, peak:(BEDROOM === 'cctv' ? 0.026 : 0.018) * g, send:p.verb, at:j});
+}
+function ambFoot(i){ sfxFoot(i); }
+function sfxDoor(){ nz({brown:true, type:'lowpass', f0:300, f1:90, fT:1.1, q:0.6, a:0.15, s:0.45, d:0.60, peak:0.045, send:0.55}); }
+/* E3 三种提问光 */
+function sfxLight(m){
+  if(!SND_READY || !SND_ON) return;
+  if(m === 'warm'){
+    osc({f0:96, f1:72, fT:0.14, a:0.003, d:0.16, peak:0.070, send:0.30});
+    nz({type:'lowpass', f0:380, f1:1250, fT:0.55, q:0.8, a:0.12, s:0.35, d:0.90, peak:0.045, send:0.30});
+    osc({f0:523.25, a:0.08, d:1.40, peak:0.012, send:0.30});
+  }else if(m === 'cold'){
+    nz({type:'highpass', f0:2800, q:0.8, a:0.002, d:0.090, peak:0.055, send:0.14});
+    nz({f0:3400, q:0.9, a:0.002, d:0.090, peak:0.045, send:0.14});
+    osc({type:'square', f0:2093, a:0.001, d:0.022, peak:0.030, send:0.14});
+    osc({f0:100, a:0.35, d:0.40, peak:0.016, send:0.14});
+    osc({f0:200, a:0.35, d:0.40, peak:0.008, send:0.14});
+    osc({f0:300, a:0.35, d:0.40, peak:0.005, send:0.14});
+  }
+}
+/* E3c 熄灯四相位 */
+var WAITT = null;
+function audioSilenceEnter(sec){
+  if(!SND_READY || !SND_ON) return;
+  var s = sec || 8;
+  try{
+    /* P1 断电器 */
+    osc({f0:180, f1:120, fT:0.014, a:0.001, d:0.030, peak:0.100, send:0.55});
+    nz({f0:2800, q:1.6, a:0.0008, d:0.045, peak:0.055, send:0.55, at:0.022});
+    osc({f0:64, f1:44, fT:0.10, a:0.003, d:0.13, peak:0.085, send:0.55, at:0.026});
+    /* P2 空间塌缩：所有音区收进一条 60 Hz 单音 */
+    SIXTY = {a:AC.createOscillator(), b:AC.createOscillator(), g:gn(0), gb:gn(0)};
+    SIXTY.a.type = 'sine'; SIXTY.a.frequency.value = 60.00;
+    SIXTY.b.type = 'sine'; SIXTY.b.frequency.value = 120.40;   /* 差 0.4Hz → 极慢打拍 */
+    var lp = flt('lowpass', 200, 0.7);
+    SIXTY.a.connect(SIXTY.g); SIXTY.b.connect(SIXTY.gb);
+    SIXTY.g.connect(lp); SIXTY.gb.connect(lp); lp.connect(BB);
+    SIXTY.a.start(); SIXTY.b.start();
+    ramp(SIXTY.g.gain, 0.048, 1.20); ramp(SIXTY.gb.gain, 0.014, 1.20);
+    ramp(BB.gain, 0.06, 1.20); ramp(TB.gain, 0.10, 1.20); ramp(RET.gain, 0.12, 1.20);
+    ramp(GLP.frequency, 240, 1.20);
+    /* P3 真空：呼吸 / 钟表 / 心跳 */
+    WAITT = {t0:Date.now(), sec:s, timers:[], breath:null};
+    startBreath();
+    startClock(1.20);
+    if(SNDST.T >= 0.45) startHeart();
+  }catch(e){}
+}
+function audioSilenceDeepen(){ /* 手指按下：呼吸稍近一点（亲密层抬 35%，0.35 s） */
+  if(!SND_READY || !SND_ON || !WAITT) return;
+  try{ ramp(IB.gain, 1.35, 0.35); }catch(e){}
+  nz({f0:520, f1:900, fT:0.50, q:1.2, a:0.020, s:0.08, d:0.18, peak:0.030, dest:'int'});
+}
+function audioSilenceExit(){
+  if(!SND_READY || !SND_ON) return;
+  try{
+    stopWaitSounds();
+    /* P4 恢复 */
+    try{ ramp(IB.gain, 1.0, 0.60); }catch(e){}
+    var p = ROOMP[BEDROOM] || ROOMP.hall;
+    ramp(BB.gain, 1.00 - 0.58 * SNDST.sil, 1.60);
+    ramp(TB.gain, 1.0, 1.60);
+    ramp(RET.gain, 0.45 - 0.15 * SNDST.sil, 1.60);
+    var g01 = Math.max(0, Math.min(1, ((SNDST.glass) - 5.4) / 0.7));
+    ramp(GLP.frequency, Math.max(240, 16000 * Math.pow(0.155, g01) - 900 * SNDST.sil), 1.60);
+    if(SIXTY){ ramp(SIXTY.g.gain, 0, 1.60); ramp(SIXTY.gb.gain, 0, 1.60);
+      var sx = SIXTY; SIXTY = null;
+      setTimeout(function(){ try{ sx.a.stop(); sx.b.stop(); sx.g.disconnect(); sx.gb.disconnect(); }catch(e){} }, 1900); }
+    osc({f0:150, f1:100, fT:0.012, a:0.002, d:0.030, peak:0.070, send:0.40});
+    nz({f0:2400, q:1.6, a:0.002, d:0.045, peak:0.038, send:0.40});
+  }catch(e){}
+}
+function stopWaitSounds(){
+  try{
+    if(WAITT){ WAITT.timers.forEach(function(t){ clearInterval(t); clearTimeout(t); }); WAITT = null; }
+  }catch(e){}
+}
+/* 呼吸（亲密层，旁路玻璃） */
+function breathOnce(){
+  if(!SND_READY || !SND_ON || !WAITT) return;
+  var per = Math.max(3.0, Math.min(4.8, 4.60 - 1.20 * SNDST.prog - 0.50 * SNDST.T)) * 1000;
+  nz({f0:620, f1:1150, fT:0.90, q:1.4, a:0.35, s:0.20, d:0.25, peak:0.050, dest:'int'});
+  setTimeout(function(){ nz({f0:900, f1:430, fT:1.25, q:1.1, a:0.30, s:0.25, d:0.35, peak:0.042, dest:'int'}); }, 1050);
+  if(WAITT) WAITT.timers.push(setTimeout(breathOnce, per));
+}
+function startBreath(){ breathOnce(); }
+/* 钟表滴答 */
+function startClock(delay){
+  function beat(){
+    if(!WAITT) return;
+    var left = WAITT.sec - (Date.now() - WAITT.t0) / 1000;
+    var late = left <= 3, send = late ? 0.22 : 0.15;
+    var f = late ? (left <= 1 ? 1950 : left <= 2 ? 2150 : 2400) : 3200;
+    nz({f0:f, q:4.0, a:0.0005, d:0.009, peak:0.030, send:send, pan:-0.35});
+    setTimeout(function(){
+      if(!WAITT) return;
+      nz({f0:late ? f - 250 : 2900, q:4.0, a:0.0005, d:0.009, peak:0.022, send:send, pan:0.35});
+    }, 500);
+  }
+  var to = setTimeout(function(){
+    if(!WAITT) return;
+    beat();
+    var iv = setInterval(function(){ if(!WAITT){ clearInterval(iv); return; } beat(); }, 1000);
+    if(WAITT) WAITT.timers.push(iv);
+  }, (delay || 0) * 1000 + 350);
+  if(WAITT) WAITT.timers.push(to);
+}
+/* 心跳 */
+function startHeart(){
+  var bpm = 52 + 22 * SNDST.T, per = 60000 / bpm;
+  var iv = setInterval(function(){
+    if(!WAITT){ clearInterval(iv); return; }
+    osc({f0:62, f1:46, fT:0.10, a:0.006, d:0.13, peak:0.075, dest:'int'});
+    setTimeout(function(){ osc({f0:54, f1:40, fT:0.10, a:0.006, d:0.11, peak:0.050, dest:'int'}); }, 220);
+  }, per);
+  if(WAITT) WAITT.timers.push(iv);
+}
+/* E6 发现矛盾 */
+function audioContradiction(){
+  nz({f0:3400, q:3.0, a:0.0008, d:0.012, peak:0.045, send:0.55});
+  osc({f0:1318.51, a:0.25, s:0.50, d:1.10, peak:0.055, send:0.55});
+  osc({f0:1396.91, a:0.25, s:0.50, d:1.10, peak:0.055, send:0.55});
+}
+/* E7 信任崩塌 */
+function audioCollapse(){
+  var d = [0, 0.014, 0.031, 0.058, 0.089];
+  var f = [3100, 4200, 5600, 7200, 8900];
+  var q = [9, 11, 12, 13, 14];
+  var dd = [0.020, 0.028, 0.036, 0.048, 0.060];
+  var gg = [0.055, 0.048, 0.040, 0.032, 0.024];
+  for(var i = 0; i < 5; i++) nz({f0:f[i], q:q[i], a:0.0005, d:dd[i], peak:gg[i], send:0.60, at:d[i]});
+  osc({f0:84, f1:58, fT:0.13, a:0.003, d:0.18, peak:0.100, send:0.60});
+  nz({f0:2100, q:18, a:0.02, d:0.90, peak:0.018, send:0.60});
+}
+/* 撒谎：一次短促的失谐 */
+function audioLie(){
+  osc({f0:1174.66, a:0.004, d:0.18, peak:0.020, send:0.30});
+  osc({f0:1108.5, a:0.004, d:0.18, peak:0.020, send:0.30});
+}
+/* 那半句话（熄灯等来的） */
+function sfxConfess(){ nz({f0:2600, q:3.2, a:0.002, d:0.09, peak:0.040, send:0.45}); }
+/* E0 推门入场 */
+function sfxEnter(){
+  nz({f0:1500, q:4.0, a:0.001, d:0.025, peak:0.070, send:0.55});
+  osc({f0:140, f1:95, fT:0.040, a:0.002, d:0.055, peak:0.080, send:0.55});
+  nz({f0:1900, q:5.0, a:0.001, d:0.022, peak:0.060, send:0.55, at:0.190});
+  osc({f0:128, f1:88, fT:0.040, a:0.002, d:0.055, peak:0.060, send:0.55, at:0.190});
+  nz({f0:2400, q:5.0, a:0.001, d:0.030, peak:0.050, send:0.55, at:0.420});
+  osc({f0:110, f1:76, fT:0.050, a:0.002, d:0.055, peak:0.050, send:0.55, at:0.420});
+  nz({brown:true, type:'lowpass', f0:300, f1:90, fT:1.10, q:0.6, a:0.15, s:0.45, d:0.60, peak:0.045, send:0.55, at:0.700});
+}
+/* E8 玻璃加厚（结局） */
+function sfxEnd(){
+  if(!SND_READY || !SND_ON) return;
+  try{
+    ramp(BB.gain, 0.15, 1.20); ramp(TB.gain, 0.15, 1.20); ramp(RET.gain, 0.15 * 0.45, 1.20);
+    setTimeout(function(){ ramp(BB.gain, 1.0 - 0.58 * SNDST.sil, 1.80); ramp(TB.gain, 1.0, 1.80); }, 6500);
+  }catch(e){}
+  var g = (S.v && (S.v.glass || 5.4) > 5.45);
+  nz({f0:2600, q:5.0, a:0.001, d:0.040, peak:0.090, send:0.50, at:0.80});
+  osc({f0:210, f1:160, fT:0.060, a:0.002, d:0.075, peak:0.070, send:0.50, at:0.80});
+  if(!g){ osc({f0:320, f1:300, fT:0.060, a:0.002, d:0.10, peak:0.045, send:0.50, at:0.90}); return; }
+  nz({type:'lowpass', f0:120, f1:520, fT:1.40, q:0.8, a:0.20, s:0.90, d:0.50, peak:0.055, send:0.50, at:1.50});
+  osc({f0:310, a:0.15, s:0.90, d:0.50, peak:0.020, send:0.50, at:1.50});
+  osc({f0:46.25, a:0.010, d:0.90, peak:0.100, send:0.50, at:1.50});
+  nz({type:'lowpass', f0:120, f1:520, fT:1.40, q:0.8, a:0.20, s:0.90, d:0.50, peak:0.074, send:0.50, at:3.20});
+  osc({f0:310, a:0.15, s:0.90, d:0.50, peak:0.027, send:0.50, at:3.20});
+  osc({f0:46.25, a:0.010, d:0.90, peak:0.100, send:0.50, at:3.20});
+  osc({f0:4186.01, a:0.020, d:0.50, peak:0.028, send:0.55, at:5.00});
+  nz({f0:6400, q:3.0, a:0.002, d:0.090, peak:0.020, send:0.55, at:5.00});
+  nz({f0:1500, q:6.0, a:0.001, d:0.020, peak:0.075, send:0.55, at:6.50});
+  osc({f0:78, f1:52, fT:0.20, a:0.004, d:0.45, peak:0.090, send:0.55, at:6.50});
+}
+/* E9 揭示卡 */
+function sfxCard(kind){
+  if(!SND_READY || !SND_ON) return;
+  if(kind === 'mona'){
+    osc({f0:1046.50, a:0.060, d:1.80, peak:0.035, send:0.70});
+    osc({f0:1567.98, a:0.060, d:1.80, peak:0.035, send:0.70});
+    osc({f0:65.41, a:0.20, d:1.20, peak:0.030, send:0.70});
+  }else if(kind === 'char'){
+    nz({f0:620, f1:1150, fT:0.90, q:1.4, a:0.35, s:0.20, d:0.25, peak:0.038, send:0.20});
+    osc({f0:kind === 'num' ? 87.31 : 98.00, a:0.04, d:1.60, peak:0.022, send:0.20});
+  }else{
+    nz({f0:2200, f1:1400, fT:0.22, q:2.2, a:0.002, d:0.24, peak:0.045, send:0.40});
+    nz({f0:3800, q:4.0, a:0.0005, d:0.008, peak:0.050, send:0.40});
+  }
+}
+/* E10 进入隐藏走廊 */
+function sfxCorridor(){
+  nz({f0:420, f1:260, fT:0.70, q:1.6, a:0.05, s:0.35, d:0.25, peak:0.050, send:0.60});
+  osc({type:'sawtooth', f0:180, a:0.03, s:0.30, d:0.20, peak:0.022, send:0.60});
+  setTimeout(function(){ nz({f0:1520, q:1.1, a:0.001, d:0.035, peak:0.036, send:0.20}); }, 1900);
+  setTimeout(function(){ nz({f0:1520, q:1.1, a:0.001, d:0.035, peak:0.036, send:0.20}); }, 2450);
+}
+/* E11 落笔 */
+function sfxWrite(){
+  for(var i = 0; i < 10; i++){
+    (function(k){
+      setTimeout(function(){
+        nz({type:'highpass', f0:2200, q:0.7, a:0.010, s:0.06 + Math.random() * 0.08, d:0.030, peak:0.045, dest:'int'});
+        nz({brown:true, type:'lowpass', f0:200, q:0.6, a:0.010, s:0.08, d:0.030, peak:0.012, dest:'int'});
+      }, k * (110 + Math.random() * 60));
+    })(i);
+  }
+}
+function sfxPaper(){ nz({f0:2900, q:2.6, a:0.002, d:0.13, peak:0.035, send:0.16}); }
 
 /* ---------------------------------------------------- 弹窗 */
 var mask = document.getElementById('mask');
@@ -2271,6 +2958,7 @@ function enterPlay(){
   startDrone();
   show('s-play');
   paint();
+  try{ setTimeout(sfxEnter, 300); }catch(e){}   /* E0 推门入场 */
 }
 function restart(){
   try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
@@ -2307,8 +2995,11 @@ document.getElementById('b-re').addEventListener('click', askRestart);
 document.getElementById('e-again').addEventListener('click', function(){ askRestart(); });
 document.getElementById('w-skip').addEventListener('click', function(){ skipWait(); sfxTick(); });
 document.getElementById('b-snd').addEventListener('click', function(){
-  if(droneOn){ stopDrone(); this.textContent = '声音'; }
-  else{ startDrone(); this.textContent = '静音'; }
+  try{
+    if(!SND_READY){ startDrone(); this.textContent = '静音'; return; }
+    setMute(SND_ON);
+    this.textContent = SND_ON ? '静音' : '声音';
+  }catch(e){}
 });
 document.getElementById('b-resume').addEventListener('click', function(){
   startDrone();
