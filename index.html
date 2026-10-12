@@ -2172,9 +2172,12 @@ function startHold(ms, els){
   holdState.finish = finish;
 }
 function skipWait(){
+  /* 若正处在「按住不放」里，先按放弃处理——否则熄灯音景会一直挂着 */
+  if(holdState && holdState.finish){ holdState.finish(true); return; }
   clearReveal();
   var els = document.querySelectorAll('#scene .blk');
   for(var i=0;i<els.length;i++) els[i].classList.add('in');
+  try{ stopWaitSounds(); }catch(e){}
 }
 
 /* ---------------------------------------------------- 渲染场景 */
