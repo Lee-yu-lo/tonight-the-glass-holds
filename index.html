@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07080a">
+<title>今晚玻璃还在，但信任碎了</title>
+<meta name="description" content="一间夜里的展厅，四个人，一块 5.4 厘米的玻璃。走进去，做一次关于信任的调查。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2307080a'/%3E%3Crect x='9' y='6' width='14' height='20' fill='none' stroke='%23c9a25e' stroke-width='2'/%3E%3Cpath d='M9 20 L23 12' stroke='%23c9a25e' stroke-width='1.4' opacity='.7'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#07080a;
+  --bg2:#0d1014;
+  --panel:rgba(19,23,29,.72);
+  --panel2:rgba(26,31,38,.86);
+  --ink:#e7e2d7;
+  --ink2:#a6a094;
+  --dim:#6d695f;
+  --dim2:#4e4b44;
+  --gold:#c9a25e;
+  --gold2:#8a7140;
+  --warm:#e0b877;
+  --cold:#8bb2d2;
+  --silent:#8892a0;
+  --crack:#b4523f;
+  --line:rgba(201,162,94,.18);
+  --glass:rgba(176,206,232,.10);
+  --serif:"Songti SC","STSong","Source Han Serif SC","Noto Serif CJK SC","SimSun",Georgia,serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overscroll-behavior:none}
+body{
+  background:
+    radial-gradient(900px 520px at 50% -8%, #171c24 0%, rgba(23,28,36,0) 62%),
+    radial-gradient(600px 400px at 88% 108%, #12161d 0%, rgba(18,22,29,0) 60%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:16.5px;
+  line-height:1.95;
+  letter-spacing:.015em;
+  -webkit-font-smoothing:antialiased;
+  min-height:100%;
+}
+
+/* ============ 玻璃层（随厚度加深） ============ */
+#pane{
+  position:fixed;inset:0;z-index:60;pointer-events:none;
+  opacity:var(--gop,.18);
+  transition:opacity 1.2s ease;
+  background:
+    linear-gradient(118deg,
+      rgba(186,214,240,.055) 0%,
+      rgba(186,214,240,0) 14%,
+      rgba(255,255,255,.028) 33%,
+      rgba(186,214,240,0) 47%,
+      rgba(186,214,240,.05) 78%,
+      rgba(255,255,255,.02) 100%);
+}
+#pane::before{
+  content:"";position:absolute;inset:-30%;
+  background:linear-gradient(72deg,transparent 40%,rgba(220,238,255,.07) 50%,transparent 60%);
+  animation:sheen 17s linear infinite;
+}
+@keyframes sheen{from{transform:translateX(-45%)}to{transform:translateX(45%)}}
+#pane::after{
+  content:"";position:absolute;inset:0;
+  box-shadow:inset 0 0 190px rgba(120,170,215,.09), inset 0 0 60px rgba(0,0,0,.35);
+}
+
+/* ============ HUD ============ */
+#hud{
+  position:sticky;top:0;z-index:40;
+  background:rgba(7,8,10,.9);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.hud-in{
+  max-width:820px;margin:0 auto;padding:9px 16px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.brand{
+  font-family:var(--sans);font-size:11.5px;letter-spacing:.2em;color:var(--gold);
+  white-space:nowrap;
+}
+.brand small{color:var(--dim);letter-spacing:.08em;margin-left:7px;font-size:10px}
+.hud-r{margin-left:auto;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+
+/* 玻璃厚度计 */
+.gm{display:flex;align-items:center;gap:7px}
+.gm-num{font-family:var(--sans);font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.gm-num i{font-style:normal;color:var(--dim);font-size:9.5px;margin-left:1px}
+.gm-panes{display:flex;gap:2.5px;align-items:flex-end}
+.gm-panes span{
+  display:block;width:6px;height:15px;border-radius:1px;
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(186,214,240,.13);
+  transition:all .8s cubic-bezier(.3,.8,.3,1);
+}
+.gm-panes span.on{
+  background:linear-gradient(180deg,rgba(196,224,248,.62),rgba(150,190,225,.34));
+  border-color:rgba(200,226,248,.5);
+  box-shadow:0 0 7px rgba(170,210,245,.28);
+}
+
+/* 信任光柱 */
+.trust{display:flex;gap:6px;align-items:flex-end}
+.tl{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tl em{font-style:normal;font-family:var(--sans);font-size:9px;color:var(--dim);letter-spacing:.06em}
+.tl .col{
+  width:13px;height:22px;border-radius:2px;position:relative;overflow:hidden;
+  background:rgba(255,255,255,.05);border:1px solid rgba(201,162,94,.16);
+}
+.tl .col i{
+  position:absolute;left:0;right:0;bottom:0;display:block;
+  background:linear-gradient(180deg,var(--gold),rgba(201,162,94,.28));
+  transition:height .8s cubic-bezier(.3,.8,.3,1),background .6s;
+}
+.tl.neg .col i{background:linear-gradient(180deg,var(--crack),rgba(180,82,63,.3))}
+.tl.neg .col{border-color:rgba(180,82,63,.5)}
+.tl.neg em{color:var(--crack)}
+.tl.zero .col i{background:linear-gradient(180deg,rgba(140,136,128,.5),rgba(140,136,128,.14))}
+.tl .crk{position:absolute;inset:0;opacity:0;transition:opacity .6s}
+.tl.neg .crk{opacity:.9}
+
+.hb{
+  font-family:var(--sans);font-size:11px;color:var(--dim);
+  background:transparent;border:1px solid var(--line);border-radius:6px;
+  padding:3px 8px;cursor:pointer;transition:.18s;white-space:nowrap;
+}
+.hb:hover{color:var(--gold);border-color:var(--gold2)}
+.hb:active{transform:translateY(1px)}
+
+/* ============ 布局 ============ */
+#app{max-width:820px;margin:0 auto;padding:0 16px 130px;position:relative;z-index:2}
+.screen{display:none}
+.screen.on{display:block;animation:fade .5s both}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ============ 入口 ============ */
+#s-title{text-align:center;padding:12vh 0 0}
+.tt-kick{
+  font-family:var(--sans);font-size:10.5px;letter-spacing:.42em;color:var(--dim);
+  margin-bottom:26px;
+}
+.tt-main{
+  font-size:clamp(30px,8.6vw,50px);line-height:1.34;letter-spacing:.05em;
+  margin:0 0 8px;font-weight:400;
+  background:linear-gradient(180deg,#f4efe3 0%,#cfc5ae 62%,#9a8f74 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 46px rgba(201,162,94,.14);
+}
+.tt-sub{
+  font-family:var(--sans);font-size:12px;letter-spacing:.2em;color:var(--dim);
+  margin:0 0 34px;
+}
+.tt-frame{
+  width:112px;height:142px;margin:0 auto 34px;position:relative;
+}
+.tt-frame .fr{
+  position:absolute;inset:0;border:1px solid rgba(201,162,94,.42);border-radius:2px;
+  box-shadow:0 0 34px rgba(201,162,94,.1), inset 0 0 34px rgba(201,162,94,.05);
+}
+.tt-frame .fr::before{
+  content:"";position:absolute;inset:9px;
+  background:
+    radial-gradient(38px 46px at 50% 38%, rgba(201,162,94,.20), rgba(201,162,94,0) 70%),
+    radial-gradient(30px 34px at 50% 88%, rgba(201,162,94,.10), rgba(201,162,94,0) 72%);
+}
+.tt-frame .gp{
+  position:absolute;inset:-7px;border:1px solid rgba(186,214,240,.22);border-radius:3px;
+  background:linear-gradient(118deg,rgba(186,214,240,.075),rgba(186,214,240,0) 42%,rgba(186,214,240,.045));
+  animation:breathe 6.5s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{opacity:.6}50%{opacity:1}}
+.tt-frame .alarm{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--sans);font-size:9px;letter-spacing:.28em;color:var(--crack);
+  animation:blink 1.9s steps(1) infinite;text-shadow:0 0 12px rgba(180,82,63,.6);
+}
+@keyframes blink{0%,58%{opacity:1}59%,100%{opacity:.12}}
+.tt-meta{
+  font-family:var(--sans);font-size:11px;color:var(--dim2);letter-spacing:.12em;line-height:2.1;
+  margin-bottom:30px;
+}
+.tt-meta b{color:var(--dim);font-weight:400}
+
+.btn-main{
+  display:inline-block;font-family:var(--sans);font-size:14px;letter-spacing:.16em;
+  color:#14150f;background:linear-gradient(180deg,#dcbb74,var(--gold));
+  border:none;border-radius:9px;padding:14px 40px;cursor:pointer;
+  box-shadow:0 12px 34px rgba(201,162,94,.2);transition:.2s;
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(201,162,94,.3)}
+.btn-ghost{
+  display:inline-block;font-family:var(--sans);font-size:12px;letter-spacing:.14em;
+  color:var(--dim);background:transparent;border:1px solid var(--line);
+  border-radius:9px;padding:11px 24px;cursor:pointer;transition:.2s;margin-left:10px;
+}
+.btn-ghost:hover{color:var(--gold);border-color:var(--gold2)}
+.tt-resume{
+  font-family:var(--sans);font-size:11.5px;color:var(--dim);margin-top:22px;
+  border:1px dashed rgba(201,162,94,.22);border-radius:8px;padding:10px 16px;
+  display:inline-block;cursor:pointer;transition:.2s;
+}
+.tt-resume:hover{color:var(--gold);border-color:var(--gold2)}
+
+/* ============ 规则引导 ============ */
+.rl-head{text-align:center;padding:36px 0 26px}
+.rl-head h2{margin:0 0 8px;font-size:19px;font-weight:400;letter-spacing:.14em;color:var(--ink)}
+.rl-head p{margin:0;font-family:var(--sans);font-size:11.5px;color:var(--dim);letter-spacing:.1em}
+.rl-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
+.rl-card{
+  display:flex;gap:15px;align-items:center;
+  background:var(--panel);border:1px solid rgba(255,255,255,.05);
+  border-left:2px solid rgba(201,162,94,.3);border-radius:10px;padding:15px 17px;
+}
+.rl-demo{flex:0 0 74px;height:64px;position:relative;border-radius:7px;
+  background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.05);overflow:hidden}
+.rl-txt{flex:1;min-width:0}
+.rl-txt h3{margin:0 0 4px;font-size:15px;font-weight:400;letter-spacing:.1em;color:var(--gold)}
+.rl-txt p{margin:0;font-family:var(--sans);font-size:12px;line-height:1.85;color:var(--ink2);letter-spacing:.02em}
+
+/* demo 1 · 走 */
+.d-walk .rm{position:absolute;width:19px;height:16px;border:1px solid rgba(201,162,94,.3);border-radius:2px}
+.d-walk .a{left:7px;top:24px}
+.d-walk .b{right:7px;top:24px;background:rgba(201,162,94,.11)}
+.d-walk .dot{
+  position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);
+  top:29px;left:13px;box-shadow:0 0 9px rgba(201,162,94,.7);
+  animation:dwalk 3.1s cubic-bezier(.5,0,.5,1) infinite;
+}
+@keyframes dwalk{0%,12%{left:13px;opacity:1}46%,54%{left:52px;opacity:1}88%,100%{left:13px;opacity:.25}}
+.d-walk .trk{position:absolute;top:31.5px;left:20px;right:20px;height:1px;background:repeating-linear-gradient(90deg,rgba(201,162,94,.35) 0 3px,transparent 3px 7px)}
+
+/* demo 2 · 看 */
+.d-look .sq{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:34px;height:34px;border:1px solid rgba(186,214,240,.28);border-radius:50%}
+.d-look .ring{
+  position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;
+  border-radius:50%;border:1.5px solid transparent;border-top-color:var(--cold);
+  border-right-color:rgba(139,178,210,.4);
+  animation:spin 3.4s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.d-look .eye{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--sans);font-size:8.5px;letter-spacing:.16em;color:var(--cold);opacity:.85}
+
+/* demo 3 · 问 */
+.d-ask{display:flex;align-items:center;justify-content:center;gap:9px}
+.d-ask i{
+  display:block;width:11px;height:26px;border-radius:2px;border:1px solid;
+  animation:lamp 3.6s ease-in-out infinite;
+}
+.d-ask i:nth-child(1){border-color:rgba(224,184,119,.6);background:rgba(224,184,119,.28);animation-delay:0s}
+.d-ask i:nth-child(2){border-color:rgba(139,178,210,.6);background:rgba(139,178,210,.26);animation-delay:.45s}
+.d-ask i:nth-child(3){border-color:rgba(136,146,160,.5);background:transparent;animation-delay:.9s}
+@keyframes lamp{0%,100%{opacity:.28}50%{opacity:1}}
+
+.rl-note{
+  font-family:var(--sans);font-size:11.5px;line-height:2;color:var(--dim);
+  border-top:1px solid var(--line);padding-top:18px;margin-bottom:26px;
+}
+.rl-note b{color:var(--gold);font-weight:400}
+.rl-acts{text-align:center;padding-bottom:40px}
+
+/* ============ 平面图 ============ */
+#planwrap{
+  margin:14px 0 0;border:1px solid var(--line);border-radius:11px;
+  background:linear-gradient(180deg,rgba(17,21,27,.9),rgba(11,13,17,.9));
+  padding:8px 8px 4px;position:relative;overflow:hidden;
+}
+#planwrap::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);
+}
+#plan{display:block;width:100%;height:auto}
+#plan .shell{fill:none;stroke:rgba(201,162,94,.2);stroke-width:1;stroke-dasharray:5 4}
+#plan .path{stroke:rgba(201,162,94,.15);stroke-width:1;stroke-dasharray:2 5}
+#plan .path.lit{stroke:rgba(201,162,94,.55);stroke-dasharray:2 5;animation:dash 2.4s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-14}}
+#plan .room{cursor:default}
+#plan .room rect.rb{
+  fill:rgba(255,255,255,.026);stroke:rgba(255,255,255,.085);stroke-width:1;
+  transition:fill .45s,stroke .45s;
+}
+#plan .room text.rn{
+  font-family:var(--sans);font-size:8.6px;fill:var(--dim);letter-spacing:.09em;
+  transition:fill .45s;text-anchor:middle;
+}
+#plan .room text.rc{
+  font-family:var(--sans);font-size:6.6px;fill:var(--dim2);letter-spacing:.16em;
+  transition:fill .45s;text-anchor:middle;
+}
+#plan .room.hid{opacity:0;pointer-events:none;transition:opacity .8s}
+#plan .room.vis rect.rb{fill:rgba(255,255,255,.04);stroke:rgba(201,162,94,.2)}
+#plan .room.vis text.rn{fill:var(--ink2)}
+#plan .room.here rect.rb{fill:rgba(201,162,94,.10);stroke:var(--gold);stroke-width:1.3}
+#plan .room.here text.rn{fill:var(--gold)}
+#plan .room.here text.rc{fill:var(--gold2)}
+#plan .room.tap{cursor:pointer}
+#plan .room.tap rect.rb{stroke:rgba(201,162,94,.42);stroke-dasharray:3 3}
+#plan .room.tap:hover rect.rb{fill:rgba(201,162,94,.16);stroke:var(--gold)}
+#plan .room.tap:hover text.rn{fill:var(--gold)}
+#plan .mona{stroke:rgba(201,162,94,.5);fill:rgba(201,162,94,.07);stroke-width:.9}
+#plan .mona-fill{fill:rgba(201,162,94,.12)}
+#plan .cam{fill:rgba(139,178,210,.45)}
+#plan .brush{fill:rgba(224,184,119,.4)}
+#plan .desk{fill:rgba(255,255,255,.14)}
+#me{transition:transform .62s cubic-bezier(.45,.05,.3,1)}
+#me .halo{fill:rgba(201,162,94,.16);animation:pulse 2.5s ease-in-out infinite}
+#me .dot{fill:var(--gold);stroke:rgba(255,255,255,.5);stroke-width:.7}
+@keyframes pulse{0%,100%{r:9;opacity:.55}50%{r:14;opacity:.14}}
+#planlabel{
+  position:absolute;left:14px;bottom:9px;
+  font-family:var(--sans);font-size:9px;letter-spacing:.2em;color:var(--dim2);
+}
+#planhint{
+  position:absolute;right:14px;bottom:9px;
+  font-family:var(--sans);font-size:9px;letter-spacing:.12em;color:var(--gold2);
+  opacity:0;transition:opacity .4s;
+}
+#planhint.on{opacity:1}
+
+/* ============ 场景 ============ */
+.meta{
+  font-family:var(--sans);font-size:10px;letter-spacing:.24em;color:var(--dim);
+  text-transform:uppercase;border-left:2px solid var(--gold2);padding-left:10px;
+  margin:22px 0 16px;
+}
+#scene{
+  background:var(--panel);border:1px solid rgba(255,255,255,.045);
+  border-radius:12px;padding:20px 19px 4px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  min-height:180px;
+}
+.blk{
+  margin:0 0 .82em;opacity:0;transform:translateY(6px);
+  transition:opacity .62s ease,transform .62s cubic-bezier(.2,.7,.3,1);
+}
+.blk.in{opacity:1;transform:none}
+.blk.gap{margin:0;height:.5em}
+.blk.note{
+  color:var(--ink2);font-size:15px;line-height:1.8;
+  border-left:2px solid var(--gold2);padding:2px 0 2px 12px;margin:.85em 0;
+  background:linear-gradient(90deg,rgba(201,162,94,.055),rgba(201,162,94,0));
+}
+.blk.note::before{content:"笔记";font-family:var(--sans);font-size:9.5px;letter-spacing:.2em;color:var(--gold2);margin-right:9px}
+.blk.hit{color:#cbb68e}
+.blk.hit::before{content:"吻合";}
+.blk.miss::before{content:"矛盾";}
+.blk.miss{color:#ab9a8d}
+.blk.ev{
+  font-size:15px;line-height:1.85;color:var(--ink2);
+  padding-left:14px;margin:.1em 0;position:relative;
+}
+.blk.ev::before{content:"";position:absolute;left:2px;top:.85em;width:4px;height:1px;background:var(--gold2)}
+.blk.evh{font-family:var(--sans);font-size:10px;letter-spacing:.24em;color:var(--dim);margin:0 0 .9em}
+.blk.trow{
+  font-family:var(--sans);font-size:12px;color:var(--ink2);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:9px 0;margin:1.1em 0;letter-spacing:.05em;font-variant-numeric:tabular-nums;
+}
+.blk.fin{text-align:center;color:var(--dim);font-size:12.5px;letter-spacing:.3em;margin-top:1.8em}
+
+/* 等待环 */
+#waithud{
+  display:none;align-items:center;gap:11px;margin:16px 0 2px;
+  font-family:var(--sans);font-size:11px;color:var(--silent);letter-spacing:.14em;
+}
+#waithud.on{display:flex;animation:fade .5s both}
+.wring{position:relative;width:26px;height:26px;flex:0 0 26px}
+.wring svg{transform:rotate(-90deg)}
+.wring .bg{fill:none;stroke:rgba(136,146,160,.2);stroke-width:2}
+.wring .fg{fill:none;stroke:var(--silent);stroke-width:2;stroke-linecap:round;
+  stroke-dasharray:69.1;stroke-dashoffset:69.1;transition:stroke-dashoffset .25s linear}
+.wskip{
+  margin-left:auto;font-family:var(--sans);font-size:10.5px;color:var(--dim);
+  background:transparent;border:1px solid var(--line);border-radius:5px;padding:3px 9px;cursor:pointer;
+}
+.wskip:hover{color:var(--gold);border-color:var(--gold2)}
+
+/* ============ 动作 ============ */
+#acts{margin:16px 0 0;display:flex;flex-direction:column;gap:9px}
+.act{
+  display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;
+  font-family:var(--serif);font-size:16px;line-height:1.62;color:var(--ink);
+  background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border:1px solid rgba(255,255,255,.055);border-left:2px solid rgba(255,255,255,.16);
+  border-radius:9px;padding:12px 15px;cursor:pointer;
+  transition:border-color .2s,transform .12s,background .2s,color .2s;
+  animation:rise .45s both cubic-bezier(.2,.7,.3,1);
+}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.act:active{transform:scale(.994)}
+.act .tag{
+  flex:0 0 22px;height:22px;border-radius:5px;margin-top:2px;
+  font-family:var(--sans);font-size:10px;line-height:21px;text-align:center;letter-spacing:.04em;
+  color:var(--dim);background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);
+  transition:.2s;
+}
+.act .t{flex:1}
+.act .mv{margin-left:6px;font-family:var(--sans);font-size:9.5px;color:var(--dim2);letter-spacing:.1em;white-space:nowrap}
+.act:hover{color:#fff;background:linear-gradient(180deg,#1e232c,#161a21)}
+/* 暖 */
+.act.m-warm{border-left-color:rgba(224,184,119,.5)}
+.act.m-warm .tag{color:var(--warm);background:rgba(224,184,119,.10);border-color:rgba(224,184,119,.24)}
+.act.m-warm:hover{border-left-color:var(--warm);box-shadow:0 0 0 1px rgba(224,184,119,.09),0 8px 26px rgba(224,184,119,.08)}
+/* 冷 */
+.act.m-cold{border-left-color:rgba(139,178,210,.45)}
+.act.m-cold .tag{color:var(--cold);background:rgba(139,178,210,.10);border-color:rgba(139,178,210,.24)}
+.act.m-cold:hover{border-left-color:var(--cold);box-shadow:0 0 0 1px rgba(139,178,210,.09),0 8px 26px rgba(139,178,210,.08)}
+/* 静 */
+.act.m-silent{border-left-color:rgba(136,146,160,.42)}
+.act.m-silent .tag{color:var(--silent);background:rgba(136,146,160,.09);border-color:rgba(136,146,160,.2)}
+.act.m-silent:hover{border-left-color:var(--silent);background:linear-gradient(180deg,#14181e,#0e1116)}
+/* 走 */
+.act.m-move{border-left-color:rgba(201,162,94,.55)}
+.act.m-move .tag{color:var(--gold);background:rgba(201,162,94,.10);border-color:rgba(201,162,94,.26)}
+.act.m-move:hover{border-left-color:var(--gold);box-shadow:0 0 0 1px rgba(201,162,94,.1),0 8px 26px rgba(201,162,94,.09)}
+/* 落笔 */
+.act.m-verdict{border-left-color:rgba(180,82,63,.45)}
+.act.m-verdict .tag{color:#c9714f;background:rgba(180,82,63,.10);border-color:rgba(180,82,63,.24)}
+.act.m-verdict:hover{border-left-color:var(--crack)}
+
+/* ============ 结局 ============ */
+#s-end .endwrap{max-width:520px;margin:0 auto;padding:34px 0 0;text-align:center}
+.endglass{
+  width:170px;height:230px;margin:0 auto 30px;position:relative;
+}
+.endglass .lyr{
+  position:absolute;inset:0;border:1px solid rgba(186,214,240,.2);border-radius:3px;
+  background:linear-gradient(118deg,rgba(186,214,240,.08),rgba(186,214,240,0) 45%,rgba(186,214,240,.05));
+  opacity:0;transition:opacity .9s ease;
+}
+.endglass .lyr.on{opacity:1}
+.endglass .sh{
+  position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:16px;
+  font-family:var(--sans);font-size:10px;letter-spacing:.3em;color:var(--dim);
+  opacity:0;transition:opacity 1.4s ease 1s;
+}
+.endglass .sh.on{opacity:1}
+.endglass .num{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--sans);font-size:30px;letter-spacing:.03em;color:var(--ink);
+  text-shadow:0 0 26px rgba(201,162,94,.28);
+}
+.endglass .num i{font-style:normal;font-size:12px;color:var(--dim);margin-left:3px}
+.end-title{
+  font-size:21px;letter-spacing:.16em;margin:0 0 6px;color:var(--gold);font-weight:400;
+}
+.end-kicker{font-family:var(--sans);font-size:10.5px;letter-spacing:.3em;color:var(--dim);margin:0 0 26px}
+.end-body{text-align:left;font-size:16.5px;line-height:1.98;margin-bottom:28px}
+.end-body p{margin:0 0 .85em;opacity:0;animation:rise .8s both cubic-bezier(.2,.7,.3,1)}
+.end-body p.gap{margin:0;height:.5em}
+.end-reflect{
+  font-family:var(--sans);font-size:12px;line-height:2.1;color:var(--ink2);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:18px 4px;margin-bottom:26px;letter-spacing:.03em;
+}
+.end-reflect b{color:var(--gold);font-weight:400}
+.end-acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
+
+/* ============ 弹窗 ============ */
+#mask{
+  position:fixed;inset:0;z-index:80;display:none;
+  background:rgba(4,5,7,.76);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  align-items:center;justify-content:center;padding:22px;
+}
+#mask.on{display:flex}
+.dlg{
+  width:100%;max-width:440px;max-height:82vh;overflow-y:auto;
+  background:#12151b;border:1px solid var(--line);border-radius:13px;padding:24px;
+  box-shadow:0 30px 80px rgba(0,0,0,.7);animation:rise .3s both;
+}
+.dlg h3{margin:0 0 14px;font-size:16px;font-weight:400;color:var(--gold);letter-spacing:.1em}
+.dlg p{margin:0 0 15px;font-size:14.5px;color:var(--ink2);line-height:1.85}
+.dlg p.sm{font-size:12.5px;color:var(--dim);line-height:1.9}
+.dlg-acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.btn{
+  font-family:var(--sans);font-size:13px;padding:9px 17px;border-radius:7px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink2);transition:.18s;
+}
+.btn:hover{border-color:var(--gold2);color:var(--gold)}
+.btn.solid{background:var(--gold);border-color:var(--gold);color:#14150f}
+.btn.solid:hover{background:#dcbb74;color:#14150f}
+.gl{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:7px}
+.gl li{
+  display:flex;align-items:center;gap:10px;font-size:14.5px;color:var(--ink2);
+  border:1px solid rgba(255,255,255,.05);border-radius:7px;padding:9px 12px;background:rgba(255,255,255,.02);
+}
+.gl li.lock{color:#5a564e}
+.gl li b{font-family:var(--sans);font-size:10.5px;color:var(--gold2);letter-spacing:.16em;flex:0 0 auto}
+.gl li.lock b{color:#4a4740}
+.gl li s{flex:1;text-decoration:none}
+.spec{list-style:none;margin:0 0 16px;padding:0}
+.spec li{
+  display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.045);
+  font-size:13px;color:var(--ink2);line-height:1.7;
+}
+.spec li b{
+  flex:0 0 58px;font-family:var(--sans);font-size:10px;letter-spacing:.14em;
+  color:var(--gold2);font-weight:400;padding-top:3px;
+}
+.spec li s{flex:1;text-decoration:none}
+
+#foot{
+  position:fixed;bottom:0;left:0;right:0;z-index:20;
+  font-family:var(--sans);font-size:10px;color:#4a4740;letter-spacing:.1em;
+  background:linear-gradient(180deg,rgba(7,8,10,0),rgba(7,8,10,.94) 48%);
+  padding:20px 20px 11px;text-align:center;pointer-events:none;
+}
+
+@media(max-width:560px){
+  body{font-size:16px}
+  #app{padding:0 13px 120px}
+  .hud-in{padding:8px 13px 7px;gap:6px}
+  .brand{flex:0 0 100%;font-size:11px;margin-bottom:1px}
+  .brand small{display:none}
+  .hud-r{gap:6px;width:100%;justify-content:space-between;flex-wrap:wrap}
+  .gm-num i{display:none}
+  .gm{gap:4px}
+  .gm-panes{gap:2px}
+  .gm-panes span{width:5px;height:13px}
+  .hb{padding:3px 6px;font-size:10.5px;white-space:nowrap}
+  .trust{gap:4px}
+  .tl em{font-size:8px}
+  .tl .col{width:10px;height:18px}
+  #scene{padding:17px 15px 4px}
+  .act{font-size:15.5px;padding:11px 13px}
+  .rl-card{gap:12px;padding:13px}
+  .rl-demo{flex:0 0 62px;height:58px}
+  #s-title{padding:8vh 0 0}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.08s !important}
+}
+</style>
+</head>
+<body>
+
+<div id="pane"></div>
+
+<header id="hud">
+  <div class="hud-in">
+    <div class="brand">今晚玻璃还在，但信任碎了<small>DENON · 02:17</small></div>
+    <div class="hud-r">
+      <div class="gm">
+        <span class="gm-num" id="g-num">5.4<i>cm</i></span>
+        <div class="gm-panes" id="g-panes"></div>
+      </div>
+      <div class="trust" id="trust"></div>
+      <button class="hb" id="b-rule">规则</button>
+      <button class="hb" id="b-about2">说明</button>
+      <button class="hb" id="b-gl">结局</button>
+      <button class="hb" id="b-snd">声音</button>
+      <button class="hb" id="b-re">重走</button>
+    </div>
+  </div>
+</header>
+
+<div id="app">
+
+  <!-- ============ 入口 ============ -->
+  <section class="screen on" id="s-title">
+    <div class="tt-kick">互 动 叙 事 装 置</div>
+    <div class="tt-frame">
+      <div class="fr"></div>
+      <div class="gp"></div>
+      <div class="alarm">接触 · 01:43 · 内侧</div>
+    </div>
+    <h1 class="tt-main">今晚玻璃还在<br>但信任碎了</h1>
+    <p class="tt-sub">一间夜里的展厅 · 四个人 · 一块 5.4 厘米的玻璃</p>
+    <div class="tt-meta">
+      <b>1911</b> 无防护　→　<b>1956</b> 酸液　→　<b>2009</b> 茶杯<br>
+      <b>2022</b> 番茄汤　→　<b>今晚</b> 接触警报
+    </div>
+    <div>
+      <button class="btn-main" id="b-enter">推 门 进 入</button>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-ghost" id="b-rules2">先看规则</button>
+      <button class="btn-ghost" id="b-about">装置说明</button>
+    </div>
+    <div id="resume" style="display:none">
+      <div class="tt-resume" id="b-resume">继续上一夜 · 第 <b id="r-step">1</b> 步</div>
+    </div>
+    <div style="height:20px"></div>
+  </section>
+
+  <!-- ============ 规则 ============ -->
+  <section class="screen" id="s-rules">
+    <div class="rl-head">
+      <h2>三 个 动 作</h2>
+      <p>你在一间展厅里。用脚走，用光问。</p>
+    </div>
+    <div class="rl-cards">
+      <div class="rl-card">
+        <div class="rl-demo d-walk">
+          <div class="trk"></div><div class="rm a"></div><div class="rm b"></div><div class="dot"></div>
+        </div>
+        <div class="rl-txt">
+          <h3>走</h3>
+          <p>七个空间。谁待在哪个房间，决定了你能听见谁的哪一段话。走过去，才拿得到。</p>
+        </div>
+      </div>
+      <div class="rl-card">
+        <div class="rl-demo d-look">
+          <div class="sq"></div><div class="ring"></div><div class="eye">静</div>
+        </div>
+        <div class="rl-txt">
+          <h3>看</h3>
+          <p>站定不动，让沉默发生。你越不开口，对面说得越多。灯泡掉下来的那种安静，是有用的。</p>
+        </div>
+      </div>
+      <div class="rl-card">
+        <div class="rl-demo d-ask">
+          <i></i><i></i><i></i>
+        </div>
+        <div class="rl-txt">
+          <h3>问</h3>
+          <p>同一个问题，三种光：<b style="color:var(--warm)">暖光</b>换真心，<b style="color:var(--cold)">冷光</b>换事实，<b style="color:var(--silent)">熄灯</b>换他们自己憋不住的那句。</p>
+        </div>
+      </div>
+    </div>
+    <div class="rl-note">
+      · 你没有血量，没有失败。你只有<b>四个人的信任值</b>和<b>一块玻璃的厚度</b>。<br>
+      · 走到<b>出口</b>落笔时，你写下的那个词会决定玻璃加厚多少。<br>
+      · 四个结局。它们的差别不在真相——真相只有一个——在你怎么写它。
+    </div>
+    <div class="rl-acts">
+      <button class="btn-main" id="b-rstart">进 入 展 厅</button>
+      <button class="btn-ghost" id="b-rback">返回</button>
+    </div>
+    <div style="height:30px"></div>
+  </section>
+
+  <!-- ============ 主游戏 ============ -->
+  <section class="screen" id="s-play">
+    <div id="planwrap">
+      <svg id="plan" viewBox="0 0 340 272" role="img" aria-label="展厅平面图">
+        <rect class="shell" x="8" y="8" width="324" height="256" rx="3"/>
+        <g class="paths">
+          <path id="p-office"   class="path" d="M170 74 L170 96"/>
+          <path id="p-cctv"     class="path" d="M98 127 L118 127"/>
+          <path id="p-restore"  class="path" d="M222 127 L240 127"/>
+          <path id="p-center"   class="path" d="M170 158 L170 180"/>
+          <path id="p-exit"     class="path" d="M170 218 L170 236"/>
+          <path id="p-corridor" class="path" d="M240 47 L222 47"/>
+          <path id="p-cor2"     class="path" d="M278 74 L278 96"/>
+        </g>
+
+        <g class="room vis" data-r="office">
+          <rect class="rb" x="118" y="20" width="104" height="54" rx="2"/>
+          <text class="rn" x="170" y="38">策展办公室</text>
+          <text class="rc" x="170" y="49">亨利 · 45</text>
+          <rect class="desk" x="150" y="56" width="40" height="6" rx="1"/>
+        </g>
+        <g class="room hid" data-r="corridor">
+          <rect class="rb" x="240" y="20" width="76" height="54" rx="2"/>
+          <text class="rn" x="278" y="38">东侧走廊</text>
+          <text class="rc" x="278" y="49">无摄像头</text>
+        </g>
+        <g class="room vis" data-r="cctv">
+          <rect class="rb" x="22" y="96" width="76" height="62" rx="2"/>
+          <text class="rn" x="60" y="114">监控室</text>
+          <text class="rc" x="60" y="125">马库斯 · 22</text>
+          <circle class="cam" cx="60" cy="137" r="3.4"/>
+        </g>
+        <g class="room vis" data-r="hall">
+          <rect class="rb" x="118" y="96" width="104" height="62" rx="2"/>
+          <text class="rc" x="170" y="108">伊利亚 · 68</text>
+          <rect class="mona" x="159" y="114" width="22" height="26" rx="1"/>
+          <rect class="mona-fill" x="162" y="117" width="16" height="20" rx="1"/>
+          <text class="rn" x="170" y="152">画厅 · 玻璃</text>
+        </g>
+        <g class="room vis" data-r="restore">
+          <rect class="rb" x="240" y="96" width="76" height="62" rx="2"/>
+          <text class="rn" x="278" y="114">修复台</text>
+          <text class="rc" x="278" y="125">艾达 · 58</text>
+          <rect class="brush" x="272" y="134" width="12" height="5" rx="2.5" transform="rotate(-24 278 136)"/>
+        </g>
+        <g class="room vis" data-r="center">
+          <rect class="rb" x="96" y="180" width="148" height="38" rx="2"/>
+          <text class="rn" x="170" y="196">中央 · 对质</text>
+          <text class="rc" x="170" y="207">四人 · 一盏灯</text>
+        </g>
+        <g class="room hid" data-r="exit">
+          <rect class="rb" x="118" y="236" width="104" height="26" rx="2"/>
+          <text class="rn" x="170" y="253">出口 · 落笔</text>
+        </g>
+
+        <g id="me" style="transform:translate(128px,150px)">
+          <circle class="halo" cx="0" cy="0" r="9"/>
+          <circle class="dot" cx="0" cy="0" r="4.2"/>
+        </g>
+      </svg>
+      <div id="planlabel">德农馆 · 夜间平面</div>
+      <div id="planhint">点亮的房间可以走过去</div>
+    </div>
+
+    <div class="meta" id="scene-meta"></div>
+    <div id="scene"></div>
+    <div id="waithud">
+      <div class="wring">
+        <svg width="26" height="26" viewBox="0 0 26 26">
+          <circle class="bg" cx="13" cy="13" r="11"/>
+          <circle class="fg" id="w-fg" cx="13" cy="13" r="11"/>
+        </svg>
+      </div>
+      <span id="w-txt">你不说话。等着。</span>
+      <button class="wskip" id="w-skip">不等了</button>
+    </div>
+    <div id="acts"></div>
+    <div style="height:26px"></div>
+  </section>
+
+  <!-- ============ 结局 ============ -->
+  <section class="screen" id="s-end">
+    <div class="endwrap">
+      <div class="endglass" id="eg">
+        <div class="lyr" style="inset:0"></div>
+        <div class="lyr" style="inset:3px -3px -3px 3px"></div>
+        <div class="lyr" style="inset:6px -6px -6px 6px"></div>
+        <div class="lyr" style="inset:9px -9px -9px 9px"></div>
+        <div class="lyr" style="inset:12px -12px -12px 12px"></div>
+        <div class="lyr" style="inset:15px -15px -15px 15px"></div>
+        <div class="num" id="eg-num">5.4<i>cm</i></div>
+        <div class="sh" id="eg-sh">你的影子 · 压在她脸上</div>
+      </div>
+      <h2 class="end-title" id="e-title"></h2>
+      <p class="end-kicker" id="e-kick"></p>
+      <div class="end-body" id="e-body"></div>
+      <div class="end-reflect" id="e-reflect"></div>
+      <div class="end-acts">
+        <button class="btn" id="e-again">再走一夜</button>
+        <button class="btn" id="e-gl">四个结局</button>
+        <button class="btn solid" id="e-about">装置说明</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="foot">进度自动保存 · 关掉也能接着走</div>
+
+<div id="mask"><div class="dlg" id="dlg"></div></div>
+
+<script>
+/* ==========================================================================
+   《今晚玻璃还在，但信任碎了》
+   原作：《蒙娜丽莎》安全史 · 39 格互动叙事（单文件版）
+   本次转译：把文本分支树 → 物理空间的「走 / 看 / 问」
+   核心改动：
+     1. 四个嫌疑人各锚定一个房间，信息必须走过去才拿得到
+     2. 提问以「光」呈现：暖 / 冷 / 熄灯
+     3. 沉默是真实等待——有倒计时，等到了，对方才多说一句
+     4. 玻璃厚度是全局视觉层，越厚，你越看不清
+   ========================================================================== */
+
+var SAVE_KEY = 'glass_trust_save_v1';
+var GAL_KEY  = 'glass_trust_gallery_v1';
+
+/* ---------------------------------------------------------------- 房间 */
+var RINFO = {
+  hall:     {n:'画厅 · 玻璃',  s:'画厅',  x:128, y:150, code:'DENON / HALL'},
+  cctv:     {n:'监控室',        s:'监控室', x:32,  y:150, code:'DENON / CCTV'},
+  restore:  {n:'修复台',        s:'修复台', x:250, y:150, code:'DENON / LAB'},
+  office:   {n:'策展办公室',    s:'办公室', x:128, y:68,  code:'DENON / OFFICE'},
+  corridor: {n:'东侧走廊',      s:'走廊',  x:250, y:68,  code:'DENON / EAST'},
+  center:   {n:'中央 · 对质',   s:'中央',  x:106, y:212, code:'DENON / CENTER'},
+  exit:     {n:'出口 · 落笔',   s:'出口',  x:128, y:256, code:'DENON / GATE'}
+};
+
+/* 节点 → 房间 */
+var NR = {
+  '01':'hall','02':'hall','03':'hall','04':'hall','05':'hall','06':'hall','07':'hall','08':'hall',
+  '09':'cctv','10':'cctv','11':'cctv','12':'cctv',
+  '13':'restore','14':'restore','15':'restore','16':'restore','17':'restore','18':'restore',
+  '19':'office','20':'office','21':'office','22':'office','23':'office','24':'office','25':'office',
+  '26':'center','27':'center','28':'center','29':'center','30':'center','31':'center','32':'center','33':'center',
+  '34':'exit','35':'exit','36':'exit','37':'exit','38':'exit','39':'exit',
+  '40':'corridor'
+};
+
+/* ---------------------------------------------------------------- 变量 */
+function initVars(){
+  return {
+    trustIlya:0, trustAda:0, trustHenry:0, trustMarcus:0,
+    contradiction:0, silence:0, gentle:0, glass:5.4,
+    hasHook:false, hasKey:false, hasList:false, hasGlassMark:false, hasFrame:false,
+    sawGlass:false,
+    metIlya:false, metAda:false, metHenry:false, metMarcus:false,
+    motiveAda:false, deadZone:false, corridorFound:false, atCenter:false,
+    accused:"", verdict:"", heardAll:false,
+    party:0   /* 派生值：对质现场人数，仅用于文本，不参与分支 */
+  };
+}
+
+/* 文本块辅助 */
+function note(t){ return {cls:'note', t:t}; }
+function hit(t){ return {cls:'note hit', t:t}; }
+function miss(t){ return {cls:'note miss', t:t}; }
+function ev(t){ return {cls:'ev', t:t}; }
+function evh(t){ return {cls:'evhead', t:t}; }
+function trow(t){ return {cls:'trow', t:t}; }
+function fin(t){ return {cls:'final', t:t}; }
+
+/* ==========================================================================
+   39 + 1 格
+   ========================================================================== */
+var P = {};
+
+/* ---------------- 画厅 · 玻璃 ---------------- */
+
+P['01'] = {name:'推门', act:'一 · 现场', render:function(v){
+  var init = initVars();
+  for(var k in init) v[k] = init[k];
+  return {blocks:[
+    '凌晨2点17分。德农馆。','',
+    '警报把你叫醒的。不是画丢了——是有人碰了玻璃。','',
+    '5.4厘米。防弹。没碎。画没坏。系统只留下一行字：','',
+    '接触。1:43。内侧。','',
+    '内侧。画的那一边。','',
+    '你干保险调查十五年，专门查“东西坏了、但看着没坏”的现场。今晚这单，看着就没坏。','',
+    '值班表上四个名字：','',
+    '伊利亚·沃尔科夫，68，夜班主管。—— 画厅。',
+    '马库斯·陈，22，实习技术员。　—— 监控室。',
+    '艾达·莱文，58，修复师。　　　—— 修复台。',
+    '亨利·福克斯，45，首席策展。　—— 策展办公室。','',
+    '四个房间。四个人。能进到内侧的，只有他们。','',
+    '你站在玻璃前面。'
+  ], choices:[
+    {t:'先绕着玻璃走一圈，不说话', to:'02', m:'silent'},
+    {t:'叫夜班主管伊利亚过来', to:'03', m:'warm'},
+    {t:'走去监控室', to:'09'},
+    {t:'走去修复台', to:'13'}
+  ]};
+}};
+
+P['02'] = {name:'绕行', act:'一 · 现场', slow:6, render:function(v){
+  var first = !v.sawGlass, b = [];
+  if(first){
+    v.hasGlassMark = true; v.sawGlass = true; v.silence += 1; v.gentle += 1;
+    b.push('你绕了一圈。不说话。只是看。','',
+      '底下那道旧痕是1956年的。有人往画上泼酸。那年加了第一层玻璃。',
+      '中间那道是钝器敲的。2009年，或者2022年——一只茶杯，一罐番茄汤。分不清了。',
+      '最上面那道是新的。一枚左手拇指印。从玻璃内侧压出来的。','',
+      '有人从画的那一边，把手贴上去了。','',
+      note('内侧指纹。'));
+  }else{
+    b.push('你又绕了一圈。三道痕还在那儿。','',
+      '最新那道你看得最久。它不像破坏，像有人隔着玻璃按了一下，确认对面还有东西。');
+  }
+  var ch = [
+    {t:'去找伊利亚', to:'03', m:'warm'},
+    {t:'走去监控室', to:'09'},
+    {t:'走去修复台', to:'13'}
+  ];
+  if(v.deadZone) ch.push({t:'从东侧走廊绕过去', to:'40'});
+  return {blocks:b, choices:ch};
+}};
+
+/* ---------------- 伊利亚（画厅） ---------------- */
+
+P['03'] = {name:'伊利亚', act:'二 · 四人', render:function(v){
+  v.metIlya = true;
+  return {blocks:[
+    '伊利亚来了。68岁。背挺得像军人，走路没声音。','',
+    '他站在你旁边，看了一眼玻璃，没低头。','',
+    '“我巡到这儿，挂钟停了。我拧了挂钩。没碰玻璃。”','',
+    '俄语口音很重。他说话的时候，左手一直插在裤兜里——你后来才知道，那根拇指上有一道旧疤。','',
+    '你怎么接——'
+  ], choices:[
+    {t:'暖光：你守这儿多久了？', to:'04', m:'warm'},
+    {t:'冷光：有人能证明吗？', to:'05', m:'cold'},
+    {t:'熄灯：不说话。等着。', to:'06', m:'silent'}
+  ]};
+}};
+
+P['04'] = {name:'伊利亚·暖', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustIlya += 1; v.gentle += 1; }
+  return {blocks:[
+    '“三十年。”他停了一下，“列宁格勒的冬天。1991年。冬宫。有人调包了一幅画。我看见了。”','',
+    '他没往下说。你也没接。','',
+    '他又补一句：“我说了。没人信。”','',
+    '他说这话的时候，看的不是画。是玻璃和墙之间那道缝。','',
+    note('1991年冬宫。一幅被调包的画。他看见了。')
+  ], choices:[
+    {t:'暖光：那你守的是什么？', to:'07', m:'warm'},
+    {t:'冷光：追问挂钩的事', to:'08', m:'cold'},
+    {t:'走去监控室', to:'09'},
+    {t:'走去修复台', to:'13'}
+  ]};
+}};
+
+P['05'] = {name:'伊利亚·冷', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustIlya -= 1; }
+  return {blocks:[
+    '“没有。”他把脸别开，“我一个人。像每天。”','',
+    '然后他就不说了。你再问什么，他都只答一句“按规定”。','',
+    note('伊利亚·沃尔科夫。无证人。按章办事。')
+  ], choices:[
+    {t:'走去监控室', to:'09'},
+    {t:'走去修复台', to:'13'}
+  ]};
+}};
+
+P['06'] = {name:'伊利亚·熄灯', act:'二 · 四人', slow:8, render:function(v,vs){
+  if(vs === 1){ v.trustIlya += 1; v.silence += 1; v.gentle += 1; }
+  return {blocks:[
+    '你不说话。他也不说话。','',
+    '展厅里只有空调的低频嗡鸣。','',
+    '二十秒。','',
+    '四十秒。','',
+    '你数到第四十秒的时候，他先撑不住了。','',
+    '“我守了三十年。”他说，“守的不是画。”'
+  ], choices:[
+    {t:'暖光：那你守的是什么？', to:'07', m:'warm'},
+    {t:'冷光：追问挂钩', to:'08', m:'cold'}
+  ]};
+}};
+
+P['07'] = {name:'守的是什么', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustIlya += 1; }
+  var b = ['“是别再出事。”','','他转身要走，又停了一步。',''];
+  if(v.silence >= 1){
+    v.deadZone = true;
+    b.push('“今晚我去了东侧走廊。查通风。”','',
+      '你记得图纸——东侧走廊没有摄像头。','',
+      '他没等你问，自己说了。你没说话，所以他多说了一句。','',
+      note('东侧走廊。图纸上从那儿过去，是监控的死角。'));
+  }else{
+    b.push('他没再说话。你也没再问。','','有些空你不填，它就一直是空的。');
+  }
+  return {blocks:b, choices:[
+    {t:'冷光：去查挂钩', to:'08', m:'cold'},
+    {t:'走去监控室', to:'09'},
+    {t:(v.silence>=1?'从东侧绕过去':'走去中央'), to:(v.silence>=1?'40':'26')}
+  ]};
+}};
+
+P['08'] = {name:'挂钩', act:'二 · 四人', render:function(v){
+  var first = !v.hasHook, b = [];
+  if(first){
+    v.hasHook = true;
+    b.push('画框背面四个老式铜挂钩。1911年佩鲁贾就是靠这玩意儿把画摘走的——那时候没有玻璃，他伸手就取下来了。','',
+      '你蹲下去看4号。铜锈被蹭掉一小块。新茬。最近有人拧过。');
+  }else{
+    b.push('4号挂钩。铜锈掉那一块，在灯下发亮。');
+  }
+  b.push('','伊利亚站在你身后，没说话。','');
+  if(v.trustIlya >= 2){
+    b.push('过了一会儿他说：“我拧的是外侧。”','',
+      '你没问他是谁拧的。他也没说是他拧的。你们都听懂了。','',
+      '他又看了一眼玻璃。','',
+      '“这东西是装给外面的人看的。”他说，“里面那位，从来没人问过她要不要。”','');
+  }
+  b.push(note('4号挂钩被拧过。'));
+  var ch = [
+    {t:'走去中央 · 整合线索', to:'26'},
+    {t:'走去策展办公室', to:'19'},
+    {t:'走去修复台', to:'13'}
+  ];
+  if(v.deadZone) ch.push({t:'去东侧走廊看看', to:'40'});
+  return {blocks:b, choices:ch};
+}};
+
+/* ---------------- 东侧走廊（隐藏） ---------------- */
+
+P['40'] = {name:'东侧走廊', act:'二 · 四人', slow:5, render:function(v){
+  v.corridorFound = true;
+  var b = ['东侧走廊。灯坏了一盏，剩下那盏在头顶上晃。','',
+    '地面上有两趟脚印。去一趟，回一趟。鞋码不大。','',
+    '墙上钉着一张旧值班表的复印件，1991年的。有人在“列宁格勒”四个字底下，用铅笔划了一道横线。划得很重，纸都起毛了。','',
+    '通风口是开着的。他说他来查通风。'];
+  if(v.trustIlya >= 2){
+    b.push('','你想起他刚才那句：守的不是画。');
+  }
+  b.push('', note('东侧走廊。没有摄像头。有人来过两趟。'));
+  return {blocks:b, choices:[
+    {t:'回画厅', to:'02'},
+    {t:'走去监控室', to:'09'},
+    {t:'走去中央 · 整合线索', to:'26'}
+  ]};
+}};
+
+/* ---------------- 监控室（马库斯） ---------------- */
+
+P['09'] = {name:'监控室', act:'二 · 四人', render:function(v){
+  v.metMarcus = true;
+  return {blocks:[
+    '监控屏亮着。马库斯趴在桌上是睡着的，被你叫醒。','',
+    '主摄像头记录：1点42分到1点52分，画面被手动暂停了十分钟。','',
+    '操作账号：fox_henry。','',
+    '马库斯揉眼睛：“亨利昨晚去过画厅。我也去了。但我没碰什么。”','',
+    '你怎么查——'
+  ], choices:[
+    {t:'冷光：一帧一帧看画面', to:'10', m:'cold'},
+    {t:'暖光：跟马库斯聊聊', to:'11', m:'warm'},
+    {t:'走去策展办公室', to:'19'}
+  ]};
+}};
+
+P['10'] = {name:'监控·细节', act:'二 · 四人', render:function(v){
+  v.hasFrame = true;
+  return {blocks:[
+    '你一帧一帧往回放。','',
+    '1点43分07秒，画面抖了一下。','',
+    '最后一帧还没被切掉：一个瘦削的背影，站在玻璃前，手抬起来。看不清脸。但那只手是从玻璃内侧伸出来的。','',
+    '你把画面停在那一帧。马库斯在旁边没吭声。','',
+    note('监控最后一帧：背影，内侧伸手。')
+  ], choices:[
+    {t:'暖光：问马库斯', to:'11', m:'warm'},
+    {t:'走去策展办公室', to:'19'}
+  ]};
+}};
+
+P['11'] = {name:'马库斯的视角', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustMarcus += 1; }
+  return {blocks:[
+    '马库斯22岁。他口袋里有一把老铜钥匙，磨得发亮。','',
+    '“我爷爷1911年在卢浮宫做工。从广东过来的，一句法语不会说。这批挂钩他参与装过。编号4那只，是他最后装的一只。”','',
+    '他把钥匙在手里翻了一下。','',
+    '“这把钥匙传给我了。我一直想看看，爷爷当年站在这儿，看见的是什么。”','',
+    note('马库斯有一把1911年的通道钥匙。')
+  ], choices:[
+    {t:'冷光：问他进没进去', to:'12', m:'cold'},
+    {t:'走去策展办公室', to:'19'},
+    {t:'走去修复台', to:'13'}
+  ]};
+}};
+
+P['12'] = {name:'马库斯·钥匙', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.contradiction += 1; }
+  v.hasKey = true;
+  return {blocks:[
+    '“我开了通道。”他低头，“但没进去。艾达姐在里面。我就跑了。”','',
+    '你问为什么跑。','',
+    '他过了几秒才说：“我爸2020年没了。他在美术馆当保安，干了十九年，疫情期间被裁。回家以后不怎么说话。”','',
+    '“他走之前老念叨一句：东西比人金贵。”','',
+    '马库斯把钥匙攥紧了。','',
+    '“我想证明他是错的。”','',
+    note('马库斯打开了维护通道。他说他没进去。')
+  ], choices:[
+    {t:'走去策展办公室', to:'19'},
+    {t:'走去中央 · 整合线索', to:'26'},
+    {t:'叫所有人到中央', to:'27'}
+  ]};
+}};
+
+/* ---------------- 修复台（艾达） ---------------- */
+
+P['13'] = {name:'修复台', act:'二 · 四人', render:function(v){
+  v.metAda = true;
+  return {blocks:[
+    '艾达没睡。工作台上摊着修复记录，1911年至今，一笔一笔。','',
+    '她抬头看你，手里还捏着修复用的细刷。','',
+    '“你想问什么？”','',
+    '你怎么开口——'
+  ], choices:[
+    {t:'冷光：你碰过玻璃吗？', to:'14', m:'cold'},
+    {t:'暖光：先聊她的工作', to:'15', m:'warm'},
+    {t:'熄灯：不说话。看她做。', to:'16', m:'silent'}
+  ]};
+}};
+
+P['14'] = {name:'艾达·冷', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustAda -= 1; }
+  return {blocks:[
+    '“没有。”','',
+    '太快了。快到你自己都愣了一下。','',
+    '她的手指抠了一下桌沿。只有一下。','',
+    note('艾达否认接触。她的手先回答了。')
+  ], choices:[
+    {t:'暖光：问她祖母的事', to:'17', m:'warm'},
+    {t:'走去监控室', to:'09'}
+  ]};
+}};
+
+P['15'] = {name:'艾达·暖', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustAda += 1; v.gentle += 1; }
+  return {blocks:[
+    '她翻到1956年那一页，指着一道旧痕：“酸液。那人想毁它。后来就加了玻璃。”','',
+    '她的手指在那道痕上摸了一下。像摸一道疤。','',
+    '“我祖母1945年在柏林。”她说，“盟军轰炸前夜，她恋人从美术馆墙上取下一幅画，藏进墙里。”','',
+    '她没说完。翻页了。','',
+    note('艾达的祖母。1945年柏林。一幅被藏起来的画。')
+  ], choices:[
+    {t:'暖光：听她把话说完', to:'17', m:'warm'},
+    {t:'冷光：问她昨晚在哪', to:'18', m:'cold'}
+  ]};
+}};
+
+P['16'] = {name:'艾达·熄灯', act:'二 · 四人', slow:8, render:function(v,vs){
+  if(vs === 1){ v.trustAda += 1; v.silence += 1; v.gentle += 1; }
+  return {blocks:[
+    '你不问。她就接着刷。','',
+    '刷子很细，一笔一笔，走得很慢。你能听见刷毛擦过纸面的声音。','',
+    '一分钟。','',
+    '三分钟。','',
+    '过了几分钟，她自己开口了：','',
+    '“我祖母临终前跟我说了一句话。”','',
+    '“她说——不是所有碰画的人，都想拥有它。有些人碰它，是为了让它活下来。”','',
+    '她说完，没看你。继续刷。','',
+    note('祖母的遗言。')
+  ], choices:[
+    {t:'暖光：听她讲祖母的事', to:'17', m:'warm'},
+    {t:'冷光：问她昨晚行踪', to:'18', m:'cold'}
+  ]};
+}};
+
+P['17'] = {name:'祖母的证词', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustAda += 1; }
+  v.motiveAda = true;
+  return {blocks:[
+    '“1945年柏林。美术馆第二天要被炸。她恋人进去，从墙上取下一幅画，塞进墙的夹层。”','',
+    '“他出来的时候说了一句：它还在。”','',
+    '艾达停下手里的刷子，看着自己的手。','',
+    '“然后他就去前线了。再没回来。”','',
+    '“没人知道那幅画在墙里。她也没说。她守了四十年，一个字都没说。”','',
+    '她抬起头。','',
+    '“我碰玻璃的时候……我想确认一下。”','',
+    '“被藏起来的东西，还在不在。”','',
+    note('艾达的动机：确认“它还在”。')
+  ], choices:[
+    {t:'走去监控室', to:'09'},
+    {t:'回画厅查挂钩', to:'08'}
+  ]};
+}};
+
+P['18'] = {name:'艾达的不在场证明', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.contradiction += 1; }
+  return {blocks:[
+    '“我在文献室。”','',
+    '几点到几点。她说了一个时间段。','',
+    '“有人看见你吗？”','',
+    '“没有。”','',
+    '文献室没有监控。没有签到。没有第二个人。','',
+    note('艾达无不在场证明。证词冲突 +1')
+  ], choices:[
+    {t:'回画厅查挂钩', to:'08'},
+    {t:'走去策展办公室', to:'19'}
+  ]};
+}};
+
+/* ---------------- 策展办公室（亨利） ---------------- */
+
+P['19'] = {name:'策展办公室', act:'二 · 四人', render:function(v){
+  v.metHenry = true;
+  return {blocks:[
+    '亨利坐在桌后，没站起来。','',
+    '办公室很整洁。两面墙的书，全是艺术史。书架上没有一张照片，没有一件私人物品。','',
+    '“调查员。坐。”','',
+    '你拿出监控记录：“1点42到52，你暂停了监控。”','',
+    '他没否认。','',
+    '你怎么接——'
+  ], choices:[
+    {t:'冷光：你为什么删监控？', to:'20', m:'cold'},
+    {t:'暖光：你昨晚看见了什么？', to:'21', m:'warm'},
+    {t:'施压：不解释我就写进报告。', to:'22', m:'cold'}
+  ]};
+}};
+
+P['20'] = {name:'亨利·对质', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustHenry += 1; }
+  var b = [
+    '“是。我删了。”他的手指敲了一下桌面，就一下，停了，“我在场。但没碰玻璃。”','',
+    '他抬头看你。','',
+    '“我看见艾达站在玻璃前面。手贴上去。她在哭。”','',
+    '“我不想她被记录下来。”','',
+    note('亨利承认删除监控。动机：不想让艾达被记录。'),''
+  ];
+  if(v.gentle >= 2){
+    b.push('他停了一下，又说了一句。','',
+      '“被记录，就等于被审判。”','');
+  }
+  if(v.trustIlya <= 0){
+    b.push('他扫了一眼你摊开的那本笔记——上面只有时间戳和编号，没有一句人话。','',
+      '“你问过他们了吗？”他说，“还是先画了格子，再往里填人？”','');
+  }
+  return {blocks:b, choices:[
+    {t:'暖光：你跟艾达是什么关系', to:'23', m:'warm'},
+    {t:'冷光：你到底做了什么', to:'25', m:'cold'}
+  ]};
+}};
+
+P['21'] = {name:'亨利·暖', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustHenry += 1; v.gentle += 1; }
+  return {blocks:[
+    '他起身给你倒了杯水。','',
+    '放在桌上了。没递过来。','',
+    '“有些真相，”他说，“公开了，整座楼都会塌。”','',
+    '你等着。他没往下说。你也端起那杯水，喝了一口。水是凉的。','',
+    note('亨利·福克斯。“公开了，整座楼都会塌。”')
+  ], choices:[
+    {t:'暖光：问他的秘密', to:'23', m:'warm'},
+    {t:'回监控室', to:'09'}
+  ]};
+}};
+
+P['22'] = {name:'亨利·施压', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustHenry -= 1; }
+  return {blocks:[
+    '他把脸冷下来了。','',
+    '“你没资格审我。”','',
+    '然后就不说了。整整四分钟，办公室里只有挂钟走针的声音。','',
+    '你最后什么也没拿到。','',
+    note('亨利拒绝配合。')
+  ], choices:[
+    {t:'走去修复台', to:'13'},
+    {t:'回监控室', to:'09'}
+  ]};
+}};
+
+P['23'] = {name:'亨利的秘密', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.trustHenry += 1; }
+  v.hasList = true;
+  return {blocks:[
+    '“我认识艾达三年。”','',
+    '“她来第一天，在画前面站了三个小时。下班了还站着。第二天她跟我说了一句话——”','',
+    '“她说：她在笑，可她在玻璃后面。”','',
+    '亨利拉开抽屉，拿出一份封存文件。牛皮纸袋，边角发脆。','',
+    '“这个不是我的事。是我接任那年，上一任策展人布吕诺交给我的。1962年，大英博物馆，一批希腊雕塑的归还清单。馆方说：处理掉。”','',
+    '他把文件放在桌上，没推给你。','',
+    '“我存进了卢浮宫的归档系统。压着。没公开。”','',
+    note('1962年希腊雕塑归还清单。被压了六十多年。')
+  ], choices:[
+    {t:'暖光：看那份清单', to:'24', m:'warm'},
+    {t:'叫所有人到中央', to:'27'}
+  ]};
+}};
+
+P['24'] = {name:'亨利·清单', act:'二 · 四人', render:function(v){
+  return {blocks:[
+    '“1962年我做了和今晚一样的事。压下。”','',
+    '“不是因为它坏。是因为——公开了也没用。只会让更多人受伤，让更少的东西留下来。”','',
+    '他看着桌上那份文件。','',
+    '“我管这个叫保护。但我知道它不正义。”','',
+    note('亨利的动机：一种“不正义的保护”。')
+  ], choices:[
+    {t:'叫所有人到中央', to:'27'},
+    {t:'走去中央 · 整合线索', to:'26'}
+  ]};
+}};
+
+P['25'] = {name:'亨利·做了什么', act:'二 · 四人', render:function(v,vs){
+  if(vs === 1){ v.contradiction += 1; }   /* 加一次性锁，与 v5 §8 一致 */
+  return {blocks:[
+    '“我删了监控。”','',
+    '“因为四个人同时开口说‘是我’的时候，我知道——他们不是串供。”','',
+    '亨利看着你。','',
+    '“他们只是……都不想说。”','',
+    '你记下来的时候，手停了一下。这句话是现在进行时。他已经知道别人会说什么了。','',
+    note('亨利证词：四人各自承认，但非串供。证词冲突 +1')
+  ], choices:[
+    {t:'走去中央 · 整合线索', to:'26'},
+    {t:'叫所有人到中央', to:'27'}
+  ]};
+}};
+
+/* ---------------- 中央 · 整合与对质 ---------------- */
+
+P['26'] = {name:'线索整合', act:'三 · 整合与对质', render:function(v){
+  var b = ['凌晨3点。展厅中央。','','你摊开本子。','', evh('证 据 栏')];
+  if(v.hasGlassMark)     b.push(ev('玻璃内侧。一枚左手拇指印。从画的那一边压出来。'));
+  if(v.hasHook)          b.push(ev('4号挂钩。铜锈被蹭掉一块。外侧拧过的痕迹。'));
+  if(v.hasKey)           b.push(ev('维护通道被打开过。马库斯有一把1911年的老钥匙。'));
+  if(v.hasFrame)         b.push(ev('监控最后一帧。一个背影，从玻璃内侧抬起手。'));
+  if(v.metHenry)         b.push(ev('监控被暂停十分钟。操作账号 fox_henry。'));
+  if(v.motiveAda)        b.push(ev('艾达的祖母，1945年柏林。一幅被藏进墙里的画。'));
+  if(v.hasList)          b.push(ev('1962年希腊雕塑归还清单。被压着，六十多年没有公开。'));
+  if(v.trustIlya >= 1)   b.push(ev('1991年冬宫。一幅被调包的画。有人看见了，没说。'));
+  if(v.trustMarcus >= 1) b.push(ev('2020年。一个被裁掉的美术馆保安。一句“东西比人金贵”。'));
+  if(v.trustAda >= 1)    b.push(ev('修复师的手回答得比她的嘴快。你记下了答案以外的那一下。'));
+  if(v.trustHenry >= 1)  b.push(ev('策展人给你倒过一杯水。杯子放在桌上，没有递过来。'));
+  if(v.deadZone)         b.push(ev('东侧走廊。没有摄像头。伊利亚今晚去过，说查通风。'));
+  if(v.corridorFound)    b.push(ev('走廊地上有两趟脚印。1991年的值班表上，“列宁格勒”被划了横线。'));
+  if(v.contradiction > 0)b.push(ev('证词对不上的地方：' + v.contradiction + ' 处。'));
+  b.push('','你抬起头。四个人站着，谁也没看谁。','',
+    trow('信任 —— 伊利亚 ' + v.trustIlya + '　｜　艾达 ' + v.trustAda + '　｜　亨利 ' + v.trustHenry + '　｜　马库斯 ' + v.trustMarcus),'');
+  if(v.silence >= 2){
+    b.push('你今晚话不多。你发现一件事：你越不开口，他们说得越多。','');
+  }
+  return {blocks:b, choices:[
+    {t:'把他们叫到一起', to:'27'},
+    {t:'回画厅再想一遍', to:'02'}
+  ]};
+}};
+
+P['27'] = {name:'对质', act:'三 · 整合与对质', render:function(v){
+  v.atCenter = true;
+  var party = 1;
+  if(v.metIlya) party++;
+  if(v.metAda) party++;
+  if(v.metHenry) party++;
+  if(v.metMarcus) party++;
+  v.party = party;
+  var b = ['凌晨3点半。展厅里只有你们 ' + party + ' 个。和那幅画。',''];
+  if(v.metIlya)   b.push('伊利亚站在最边上。手背在后面。');
+  if(v.metAda)    b.push('艾达靠着工作台。手里还捏着那支细刷。');
+  if(v.metHenry)  b.push('亨利站在灯下。他挑了个最亮的位置——他想被看清。');
+  if(v.metMarcus) b.push('马库斯坐在地上。他在场，但他不想被看见。');
+  b.push('','你问：“昨夜1点43分，谁碰了玻璃？”','','沉默。','');
+  if(v.contradiction >= 2){
+    b.push('这次沉默比之前每一次都长。你数了十二秒。');
+  }else{
+    b.push('你数了五秒。');
+  }
+  return {blocks:b, choices:[
+    {t:'指认伊利亚', to:'28', m:'verdict'},
+    {t:'指认艾达', to:'29', m:'verdict'},
+    {t:'指认亨利', to:'30', m:'verdict'},
+    {t:'指认马库斯', to:'31', m:'verdict'},
+    {t:'说：可能是系统误报', to:'32', m:'silent'}
+  ]};
+}};
+
+P['28'] = {name:'对质·伊利亚', act:'三 · 整合与对质', render:function(v){
+  v.accused = 'Ilya';
+  var b = [];
+  if(!v.metIlya) b.push('伊利亚是被从值班室叫过来的。他扣着手站在你面前——这是你们今晚第一次照面。','');
+  b.push('“挂钩是我拧的。外侧。”他把左手摊开，拇指上一道旧疤，“内侧不是我。”','',
+    '他停了很久。','',
+    '“1991年我没拦住。那幅画被调包的时候，我就在隔壁厅。我听见了动静，我没过去。”','',
+    '“今晚我拧那个挂钩，不是想打开它。”','',
+    '“我是想确认——这东西，还能不能被打开。”','',
+    miss('他拧的是外侧。内侧那枚指纹不是他的。'));
+  return {blocks:b, choices:[
+    {t:'继续听下去', to:'33'},
+    {t:'就认定是他，不再听', to:'38', m:'cold'}
+  ]};
+}};
+
+P['29'] = {name:'对质·艾达', act:'三 · 整合与对质', render:function(v){
+  v.accused = 'Ada';
+  var b = [];
+  if(!v.metAda) b.push('艾达是被从修复室叫上来的。她手里还没放下那支细刷——这是你们今晚第一次照面。','');
+  b.push('“是我。内侧。”','',
+    '她没躲。她把手举起来，掌心朝你——像在自证，也像在投降。','',
+    '“我把手贴上去。就一下。”','',
+    '“祖母的恋人碰了那幅画，藏了它，然后消失了。四十年，没人知道墙里有什么。”','',
+    '“我碰它，是想确认——被藏起来的东西，还在不在。”','',
+    '她的声音低下去。','',
+    '“不是想毁。”','',
+    hit('内侧指纹是她的。左手拇指。'));
+  return {blocks:b, choices:[
+    {t:'继续听下去', to:'33'},
+    {t:'就认定是她，不再听', to:'38', m:'cold'}
+  ]};
+}};
+
+P['30'] = {name:'对质·亨利', act:'三 · 整合与对质', render:function(v){
+  v.accused = 'Henry';
+  var b = [];
+  if(!v.metHenry) b.push('亨利是从办公室过来的。他一路没说话，先在灯下找了个位置站好——这是你们今晚第一次照面。','');
+  b.push('“我碰了。”','',
+    '亨利说得很平。像在陈述一件档案里的事。','',
+    '“我删了监控。因为1962年那件事，今晚又发生了一遍——我又一次选择了压下。”','',
+    '他看向艾达。她没看他。','',
+    '“我怕她被记录。”','',
+    hit('他承认在场，承认删除。他没说的是，他站了多久。'));
+  return {blocks:b, choices:[
+    {t:'继续听下去', to:'33'},
+    {t:'就认定是他，不再听', to:'38', m:'cold'}
+  ]};
+}};
+
+P['31'] = {name:'对质·马库斯', act:'三 · 整合与对质', render:function(v){
+  v.accused = 'Marcus';
+  var b = [];
+  if(!v.metMarcus) b.push('马库斯是被亨利叫来的。他站在门边，手插在口袋里——这是你们今晚第一次照面。','');
+  b.push('“我用爷爷的钥匙开了通道。”','',
+    '马库斯从地上站起来，把钥匙掏出来，放在掌心。','',
+    '“但没进去。我想看看爷爷当年站在这儿看见的是什么。然后艾达姐来了，我就跑了。”','',
+    '“我爸说‘东西比人金贵’。我想证明他错了。”','',
+    '他把钥匙往前递了递，没人接。','',
+    '“玻璃挡不住任何事。它只是让里面的人喘不上气。”','',
+    hit('通道是他开的。他说他没进去。'));
+  return {blocks:b, choices:[
+    {t:'继续听下去', to:'33'},
+    {t:'就认定是他，不再听', to:'38', m:'cold'}
+  ]};
+}};
+
+P['32'] = {name:'对质·误报', act:'三 · 整合与对质', slow:5, render:function(v,vs){
+  if(vs === 1){ v.silence += 1; }
+  return {blocks:[
+    '“可能是系统误报。”你说。','',
+    '亨利抬了下眼。','',
+    '“那内侧那枚指纹是谁的？”','',
+    '你答不上来。','',
+    '展厅里又安静下来。你这次没数秒。'
+  ], choices:[
+    {t:'重新指认', to:'27'}
+  ]};
+}};
+
+P['33'] = {name:'对质·真相', act:'三 · 整合与对质', render:function(v){
+  v.heardAll = true;
+  var b = ['四个人同时开口。','','又同时停下。',''];
+  if(v.accused === 'Ilya')   b.push('最后伊利亚先说。他年纪最大，所以他先认。','');
+  if(v.accused === 'Ada')    b.push('最后艾达先说。你把她的名字念出来的时候，她的手已经举起来了。','');
+  if(v.accused === 'Henry')  b.push('最后亨利先说。他挑的那个灯下的位置，现在照着他一个人。','');
+  if(v.accused === 'Marcus') b.push('最后马库斯先说。他刚从地上站起来，还没站稳。','');
+  b.push('“我们都不是凶手。”伊利亚说，“我们只是……都没说。”','',
+    '马库斯打开了通道——他想证明玻璃挡不住任何东西。',
+    '艾达进去了——她想确认被藏起来的东西还在不在。',
+    '亨利删了监控——他知道有些真相公开了，整座楼会塌。',
+    '伊利亚拧了挂钩——1991年他没拦住，今晚他不想再当那个沉默的人。','',
+    '但他最后还是沉默了。','',
+    '四个人。四个年代。同一个动作：不报告。','',
+    '不是串供。是默契。','');
+  if(v.contradiction >= 2){
+    b.push('你翻本子的时候才发现：这四个人的证词，从头到尾没有一处对得上。但也没有一处是假的。','');
+  }
+  b.push('一种跨越三十年、不需要说出口的默契——','',
+    '“我看见了。我不说。”','',
+    '玻璃还在。画还在。微笑还在。');
+  return {blocks:b, choices:[
+    {t:'走去出口，落笔', to:'34'}
+  ]};
+}};
+
+/* ---------------- 出口 · 落笔 ---------------- */
+
+P['34'] = {name:'指认·动机', act:'四 · 落笔', render:function(v){
+  var b = ['你拿起笔。','',
+    '你忽然意识到，“谁碰了玻璃”这件事已经不重要了。','',
+    '重要的是——她为什么碰。','',
+    '你要替她写下这个词。这个词会跟着她一辈子。',''];
+  if(v.trustAda >= 1){
+    b.push('你知道她想要的是哪个词。她刚才自己说出来了，只是说得轻。','');
+  }
+  return {blocks:b, choices:[
+    {t:'“她想触碰它。”', to:'35', m:'warm'},
+    {t:'“她想毁掉它。”', to:'36', m:'cold'},
+    {t:'“她想被人看见。”', to:'37', m:'silent'},
+    {t:'不写动机。只写“责任人明确”。', to:'38', m:'verdict'}
+  ]};
+}};
+
+P['35'] = {name:'结局 A · 触碰', act:'四 · 落笔', ending:'A', render:function(v){
+  v.glass = 5.9; v.verdict = 'touch';
+  var b = ['你写：接触为情感性接触，非蓄意破坏。','',
+    '报告写得轻。没人追问。','',
+    '半年后。玻璃从5.4加到了5.9。','',
+    '艾达辞职了。没告别，工作台擦干净了，细刷留在笔筒里，刷毛朝上。','',
+    '亨利调去了大英。伊利亚还在上夜班。马库斯回了学校，听说转了专业。','',
+    '你后来又路过一次德农馆。','',
+    '玻璃厚了半厘米。你在反光里看见自己的影子，正好压在她脸上。','',
+    '你站了很久。','',
+    '你想：她当年想确认的，是“被藏起来的东西还在不在”。','',
+    '还在。你看得见。','',
+    '但你摸不到了。',''];
+  if(v.motiveAda){
+    b.push('她自己先说过一句：不是所有碰画的人，都想拥有它。','','你写下的这个词，是她自己先递给你的。','');
+  }
+  if(v.trustAda <= 0){
+    b.push('她没等你把笔放下就走了。你挑这个词的时候，手边只有一份空白的笔录。','');
+  }
+  return {blocks:b};
+}};
+
+P['36'] = {name:'结局 B · 毁掉', act:'四 · 落笔', ending:'B', render:function(v){
+  v.glass = 6.1; v.verdict = 'destroy';
+  var b = ['你写：蓄意破坏未遂。建议心理评估。','',
+    '“未遂”两个字你斟酌了很久。最后没删。','',
+    '艾达被带走的时候没争辩。她把细刷留在工作台上，刷毛朝上，摆得很正。','',
+    '三个月后，有人从拘留所带出一句话给你。','',
+    '她说：“我只是想让她知道，外面还有人。”','',
+    '你把这句话记在心里，没记在档案里。','',
+    '报告已经归档了。归档编号比她的名字长。','',
+    '那年秋天，玻璃加厚到6.1厘米。','',
+    '你有时候会想：一块玻璃要加到多厚，才算把一个人的一句话挡住。',''];
+  if(v.contradiction >= 2){
+    b.push('正是那几处对不上的地方，被你排成了一条线。每一处都是真的。连起来就成了“蓄意”。','');
+  }
+  if(!v.motiveAda){
+    b.push('动机那一栏是空的。空也是最重的指控。','');
+  }
+  return {blocks:b};
+}};
+
+P['37'] = {name:'结局 C · 被看见', act:'四 · 落笔', ending:'C', render:function(v){
+  v.glass = 5.4; v.verdict = 'seen';
+  var b = ['你写：该次接触未造成损伤。接触者意图不明。','',
+    '“意图不明”是你留下的一个空。','',
+    '你没有写任何一个名字。','',
+    '报告被压下了。没有进系统，没有编号，没有归档。','',
+    '三个月后，你收到一张明信片。塞纳河，早晨有雾。没有署名。','',
+    '背面一行铅笔字，写得很轻：','',
+    '“谢谢你没有把温度写进档案。”','',
+    '那一年，玻璃停在5.4厘米。','',
+    '没有加厚。',''];
+  if(v.silence >= 2){
+    b.push('你没写名字，也没写动机。你落笔的字数，比你今晚说的还少。','');
+  }
+  if(v.hasFrame){
+    b.push('那一帧你删了。删的时候手很稳。','');
+  }
+  return {blocks:b};
+}};
+
+P['38'] = {name:'结局 D · 误判', act:'四 · 落笔', ending:'D', render:function(v){
+  v.glass = 6.1; v.verdict = 'liable';
+  var b = ['你硬指认了。报告里四个字：责任人明确。','',
+    '三个月后新闻：卢浮宫宣布玻璃再度加厚。5.4厘米到6.1厘米。','',
+    '新闻里没有提任何人的名字。',''];
+  if(v.heardAll){
+    b.push('有一件事你一直没写进报告——那天凌晨，四个人同时说“是我”。','',
+      '你当时以为那是心虚。','',
+      '后来你想了很久。也许不是。','');
+  }else{
+    b.push('你没听完就走了。那份报告后来被人补了一页。补的那一页不是你写的。','');
+  }
+  if(v.accused !== ''){
+    b.push('报告上那个名字，是你在漆黑的展厅里挑出来的。','');
+  }
+  b.push('真相轻得不像话。而你判重了。');
+  return {blocks:b};
+}};
+
+P['39'] = {name:'主题落点', act:'四 · 落笔', slow:7, render:function(v){
+  var b = ['你走出卢浮宫。天快亮了。塞纳河上有雾。','',
+    '门房在换班。他把昨夜的登记本合上，放进抽屉。','',
+    '1911年没有玻璃。后来加了一层，又一层，又一层。','',
+    '现在 ' + v.glass.toFixed(1) + ' 厘米。','',
+    '每一层，都是某一个人留下的。','',
+    '你摸了摸口袋里的报告。',''];
+  if(v.verdict === 'seen'){
+    b.push('纸比玻璃薄。今年它没有变厚。');
+  }else if(v.verdict === 'touch'){
+    b.push('纸比玻璃薄。但它让玻璃厚了半厘米——为了挡住一个没有恶意的动作。');
+  }else if(v.verdict === 'destroy'){
+    b.push('纸比玻璃薄。但你写下的那两个字，比玻璃更难拆。');
+  }else{
+    b.push('纸比玻璃薄。但它让玻璃又厚了一层。');
+  }
+  b.push('');
+  if(v.contradiction >= 2){
+    b.push('那些对不上的地方，你一个字也没往报告里写。它们不成立，但它们是对的。','');
+  }
+  if(v.silence >= 2){
+    b.push('你今晚说的话不多。你听见的东西，比写下来的多。','');
+  }
+  b.push(fin('（全文终）'));
+  return {blocks:b};
+}};
+
+/* ==========================================================================
+   引擎
+   ========================================================================== */
+var ENDINGS = {'35':'A','36':'B','37':'C','38':'D'};
+var ENDING_NAME = {A:'触碰', B:'毁掉', C:'被看见', D:'误判'};
+var ENDING_GLASS = {A:'5.9', B:'6.1', C:'5.4', D:'6.1'};
+var ENDING_KICK = {
+  A:'你替她挑了一个最软的词。玻璃还是厚了半厘米。',
+  B:'你写下了“未遂”。这两个字比玻璃更难拆。',
+  C:'你什么都没写。今年玻璃没有变厚。',
+  D:'你判重了。真相轻得不像话。'
+};
+var ENDING_REFLECT = {
+  A:'<b>5.4 → 5.9 厘米。</b>你替她挑了一个不带恶意的词，可系统还是把玻璃加厚了半厘米。善意被挡在了玻璃外面，恶意也是。',
+  B:'<b>5.4 → 6.1 厘米。</b>你把几处各自成立的证词排成了一条线。每一处都是真的，连起来就成了“蓄意”。',
+  C:'<b>5.4 → 5.4 厘米。</b>唯一一个没有加厚的结局。方法只有一种：少写一点，把人留在档案外面。',
+  D:'<b>5.4 → 6.1 厘米。</b>你没听完就落了笔。报告后来被人补了一页，那一页不是你写的。'
+};
+
+var S = null;
+var GAL = {A:false,B:false,C:false,D:false};
+var ACTS = [];
+var revealTimers = [];
+
+function freshState(){
+  return {cur:'01', room:'hall', v:initVars(), visits:{}, steps:0, ending:null, t:Date.now()};
+}
+
+function loadGallery(){
+  try{
+    var g = JSON.parse(localStorage.getItem(GAL_KEY) || 'null');
+    if(g && typeof g === 'object'){ GAL.A=!!g.A; GAL.B=!!g.B; GAL.C=!!g.C; GAL.D=!!g.D; }
+  }catch(e){}
+}
+function saveGallery(){ try{ localStorage.setItem(GAL_KEY, JSON.stringify(GAL)); }catch(e){} }
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function load(){
+  try{
+    var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if(!s || !P[s.cur]) return null;
+    var base = freshState();
+    for(var k in base.v){ if(!(k in s.v)) s.v[k] = base.v[k]; }
+    if(!s.visits) s.visits = {};
+    if(!s.room) s.room = NR[s.cur] || 'hall';
+    return s;
+  }catch(e){ return null; }
+}
+
+/* ---------------------------------------------------- 屏幕切换 */
+var rulesBack = 's-title';
+function show(id){
+  var ss = document.querySelectorAll('.screen');
+  for(var i=0;i<ss.length;i++) ss[i].classList.toggle('on', ss[i].id === id);
+  var inGame = (id === 's-play' || id === 's-end');
+  document.getElementById('hud').style.display = inGame ? '' : 'none';
+  document.getElementById('foot').style.display = (id === 's-play') ? '' : 'none';
+  window.scrollTo({top:0, behavior:'auto'});
+}
+
+/* ---------------------------------------------------- HUD */
+function hud(){
+  var g = S.v.glass;
+  document.getElementById('g-num').innerHTML = g.toFixed(1) + '<i>cm</i>';
+  var layers = g < 5.6 ? 4 : (g < 6.0 ? 5 : 6);
+  var panes = document.getElementById('g-panes');
+  if(panes.children.length !== 6){
+    panes.innerHTML = '';
+    for(var i=0;i<6;i++) panes.appendChild(document.createElement('span'));
+  }
+  for(var j=0;j<6;j++) panes.children[j].classList.toggle('on', j < layers);
+
+  var names = [['伊',S.v.trustIlya],['艾',S.v.trustAda],['亨',S.v.trustHenry],['马',S.v.trustMarcus]];
+  var tw = document.getElementById('trust');
+  tw.innerHTML = names.map(function(n){
+    var cls = n[1] > 0 ? 'tl' : (n[1] < 0 ? 'tl neg' : 'tl zero');
+    var lvl = Math.max(12, Math.min(100, (n[1] + 1) / 3 * 100));
+    return '<div class="' + cls + '"><span class="col"><i style="height:' + lvl.toFixed(0) + '%"></i>' +
+      '<svg class="crk" viewBox="0 0 13 22" preserveAspectRatio="none">' +
+      '<path d="M3 2 L7 9 L4 13 L8 20" fill="none" stroke="rgba(210,110,86,.9)" stroke-width="1"/>' +
+      '<path d="M9 5 L6 11 L10 15" fill="none" stroke="rgba(210,110,86,.6)" stroke-width=".8"/>' +
+      '</svg></span><em>' + n[0] + '</em></div>';
+  }).join('');
+
+  /* 玻璃视觉层 */
+  var extra = Math.max(0, (g - 5.4) / 0.9);
+  document.getElementById('pane').style.setProperty('--gop', (0.18 + extra * 0.42).toFixed(3));
+}
+
+/* ---------------------------------------------------- 平面图 */
+var planEl = document.getElementById('plan');
+
+function roomVisible(r){
+  if(r === 'corridor') return !!S.v.deadZone;
+  if(r === 'exit')     return !!(S.v.atCenter || S.v.heardAll || S.v.accused);
+  return true;
+}
+function paintPlan(){
+  var here = NR[S.cur] || S.room;
+  var gs = planEl.querySelectorAll('.room');
+  for(var i=0;i<gs.length;i++){
+    var g = gs[i], r = g.getAttribute('data-r');
+    var vis = roomVisible(r);
+    g.classList.toggle('hid', !vis);
+    g.classList.toggle('vis', vis);
+    g.classList.toggle('here', r === here);
+    g.classList.remove('tap');
+  }
+  /* 可直达的房间点亮 */
+  var targets = {};
+  ACTS.forEach(function(c){ if(c.to && NR[c.to] && NR[c.to] !== here) targets[NR[c.to]] = 1; });
+  var any = false;
+  Object.keys(targets).forEach(function(r){
+    if(!roomVisible(r)) return;
+    var g = planEl.querySelector('.room[data-r="' + r + '"]');
+    if(g){ g.classList.add('tap'); any = true;
+      g.onclick = function(){ var c = ACTS.filter(function(x){ return x.to && NR[x.to] === r; })[0]; if(c) pick(c); };
+    }
+  });
+  for(var k=0;k<gs.length;k++){ if(!gs[k].classList.contains('tap')) gs[k].onclick = null; }
+  /* 动线 */
+  var lit = {'p-office':0,'p-cctv':0,'p-restore':0,'p-center':0,'p-exit':0,'p-corridor':0,'p-cor2':0};
+  Object.keys(targets).forEach(function(r){
+    if(r==='office') lit['p-office']=1;
+    if(r==='cctv') lit['p-cctv']=1;
+    if(r==='restore') lit['p-restore']=1;
+    if(r==='center') lit['p-center']=1;
+    if(r==='exit') lit['p-exit']=1;
+    if(r==='corridor'){ lit['p-corridor']=1; lit['p-cor2']=1; }
+  });
+  Object.keys(lit).forEach(function(id){
+    var e = document.getElementById(id); if(e) e.classList.toggle('lit', !!lit[id]);
+  });
+  var me = document.getElementById('me');
+  var R = RINFO[here] || RINFO.hall;
+  me.style.transform = 'translate(' + R.x + 'px,' + R.y + 'px)';
+  document.getElementById('planhint').classList.toggle('on', any);
+}
+
+/* ---------------------------------------------------- 行走 */
+var walking = false;
+function walkTo(room, cb){
+  var me = document.getElementById('me');
+  var R = RINFO[room] || RINFO.hall;
+  me.style.transform = 'translate(' + R.x + 'px,' + R.y + 'px)';
+  sfxStep();
+  walking = true;
+  setTimeout(function(){ walking = false; if(cb) cb(); }, 480);
+}
+
+/* ---------------------------------------------------- 文本揭示 */
+var waitRaf = null, waitLeft = 0, waitTotal = 0;
+function clearReveal(){
+  revealTimers.forEach(function(t){ clearTimeout(t); });
+  revealTimers = [];
+  if(waitRaf){ clearInterval(waitRaf); waitRaf = null; }
+  document.getElementById('waithud').classList.remove('on');
+}
+function reveal(els, slowSec){
+  if(!slowSec){
+    els.forEach(function(el, i){
+      revealTimers.push(setTimeout(function(){ el.classList.add('in'); }, Math.min(i * 38, 640)));
+    });
+    return;
+  }
+  var n = els.length, per = Math.max(240, slowSec * 1000 / Math.max(1, n));
+  els.forEach(function(el, i){
+    var silent = el.classList.contains('gap');
+    revealTimers.push(setTimeout(function(){
+      el.classList.add('in');
+      if(!silent) sfxTick();
+    }, i * per));
+  });
+  /* 等待环 */
+  var wh = document.getElementById('waithud');
+  wh.classList.add('on');
+  waitTotal = slowSec; waitLeft = slowSec;
+  var fg = document.getElementById('w-fg');
+  var C = 69.1;
+  var step = 120;
+  waitRaf = setInterval(function(){
+    waitLeft -= step / 1000;
+    var p = Math.max(0, waitLeft / waitTotal);
+    fg.style.strokeDashoffset = (C * (1 - p)).toFixed(1);
+    document.getElementById('w-txt').textContent =
+      waitLeft > 0 ? '你不说话。等着。 ' + Math.ceil(waitLeft) + 's' : '他先开口了。';
+    if(waitLeft <= 0){ clearInterval(waitRaf); waitRaf = null; }
+  }, step);
+  fg.style.strokeDashoffset = '0';
+  document.getElementById('w-txt').textContent = '你不说话。等着。';
+}
+function skipWait(){
+  clearReveal();
+  var els = document.querySelectorAll('#scene .blk');
+  for(var i=0;i<els.length;i++) els[i].classList.add('in');
+}
+
+/* ---------------------------------------------------- 渲染场景 */
+function paint(out){
+  clearReveal();
+  if(!out){
+    out = (S.out && S.out.cur === S.cur) ? S.out : null;
+    if(!out){ out = P[S.cur].render(S.v, S.visits[S.cur] || 1); S.out = {cur:S.cur, blocks:out.blocks, choices:out.choices}; }
+  }
+  ACTS = out.choices || [];
+  S.out = {cur:S.cur, blocks:out.blocks, choices:out.choices};
+
+  document.getElementById('scene-meta').textContent =
+    P[S.cur].act + '　·　' + (RINFO[NR[S.cur]] || RINFO.hall).n + '　·　' + P[S.cur].name;
+
+  var sc = document.getElementById('scene');
+  sc.innerHTML = '';
+  var els = [];
+  (out.blocks || []).forEach(function(b){
+    var el = document.createElement('p');
+    if(typeof b === 'string'){
+      if(b === ''){ el.className = 'blk gap'; }
+      else{ el.className = 'blk'; el.textContent = b; }
+    }else{
+      el.className = 'blk ' + b.cls; el.textContent = b.t;
+    }
+    sc.appendChild(el); els.push(el);
+  });
+
+  var acts = document.getElementById('acts');
+  acts.innerHTML = '';
+  ACTS.forEach(function(c, i){
+    var b = document.createElement('button');
+    var isMove = c.to && NR[c.to] && NR[c.to] !== NR[S.cur];
+    var m = c.m || (isMove ? 'move' : '');
+    b.className = 'act' + (m ? ' m-' + m : '');
+    b.style.animationDelay = Math.min(i * 55, 700) + 'ms';
+    var tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = m === 'warm' ? '暖' : m === 'cold' ? '冷' : m === 'silent' ? '静'
+                    : m === 'verdict' ? '判' : m === 'move' ? '走' : '·';
+    var t = document.createElement('span');
+    t.className = 't'; t.textContent = c.t;
+    b.appendChild(tag); b.appendChild(t);
+    if(isMove){
+      var mv = document.createElement('span');
+      mv.className = 'mv'; mv.textContent = '→ ' + (RINFO[NR[c.to]] || {}).s;
+      b.appendChild(mv);
+    }
+    b.addEventListener('click', function(){ pick(c); });
+    acts.appendChild(b);
+  });
+
+  hud(); paintPlan();
+  reveal(els, P[S.cur].slow || 0);
+  if(navigator.vibrate && P[S.cur].slow) { try{ navigator.vibrate(8); }catch(e){} }
+}
+
+function paintLater(out){
+  setTimeout(function(){ paint(out); }, 420);
+}
+
+/* ---------------------------------------------------- 推进 */
+function go(id){
+  if(!P[id]) id = '01';
+  var prevRoom = NR[S.cur] || 'hall';
+  var nextRoom = NR[id] || 'hall';
+  S.cur = id;
+  S.visits[id] = (S.visits[id] || 0) + 1;
+  var steps = 0;
+  for(var k in S.visits) steps += S.visits[k];
+  S.steps = steps;
+
+  var out = P[id].render(S.v, S.visits[id]);
+
+  /* 落笔：不进场景，直接走向出口，然后出结局页 */
+  if(ENDINGS[id]){
+    S.ending = ENDINGS[id];
+    GAL[ENDINGS[id]] = true; saveGallery();
+    S.out = {cur:id, blocks:out.blocks, choices:[]};
+    S.room = nextRoom;
+    save();
+    paintEmpty(out);
+    paintPlan();
+    walkTo(nextRoom, function(){ setTimeout(showEnding, 620); });
+    return;
+  }
+
+  save();
+
+  if(nextRoom !== prevRoom){
+    S.room = nextRoom;
+    paintPlan();
+    walkTo(nextRoom, function(){ paint(out); });
+    paintEmpty(out);
+  }else{
+    S.room = nextRoom;
+    paint(out);
+  }
+}
+function paintEmpty(out){
+  /* 行走期间先清掉旧内容，落位后再出文本 */
+  clearReveal();
+  ACTS = [];
+  document.getElementById('scene').innerHTML = '';
+  document.getElementById('acts').innerHTML = '';
+  document.getElementById('scene-meta').textContent =
+    P[S.cur].act + '　·　' + (RINFO[NR[S.cur]] || RINFO.hall).n;
+}
+
+function pick(c){
+  if(ENDINGS[c.to]) sfxEnd();
+  go(c.to);
+}
+
+/* ---------------------------------------------------- 结局页 */
+function showEnding(){
+  var k = S.ending || 'A';
+  var g = S.v.glass;
+  document.getElementById('eg-num').innerHTML = g.toFixed(1) + '<i>cm</i>';
+  var layers = g < 5.6 ? 4 : (g < 6.0 ? 5 : 6);
+  var lyrs = document.querySelectorAll('#eg .lyr');
+  for(var i=0;i<lyrs.length;i++) lyrs[i].classList.toggle('on', i < layers);
+  var sh = document.getElementById('eg-sh');
+  sh.classList.remove('on');
+  setTimeout(function(){ sh.classList.add('on'); }, 60);
+
+  document.getElementById('e-title').textContent = '结局 ' + k + '　·　' + ENDING_NAME[k];
+  document.getElementById('e-kick').textContent = ENDING_KICK[k];
+  document.getElementById('e-reflect').innerHTML = ENDING_REFLECT[k];
+
+  var body = document.getElementById('e-body');
+  body.innerHTML = '';
+  var out = (S.out && S.out.cur === S.cur) ? S.out : null;
+  var blocks = out ? (out.blocks || []) : [];
+  blocks.forEach(function(b, i){
+    var el = document.createElement('p');
+    if(typeof b === 'string'){ if(b === ''){ el.className = 'gap'; } else { el.textContent = b; } }
+    else{ el.className = b.cls; el.textContent = b.t; }
+    el.style.animationDelay = Math.min(260 + i * 95, 2600) + 'ms';
+    body.appendChild(el);
+  });
+
+  /* 39 的主题落点接在结局后面 */
+  var tail = P['39'].render(S.v, 1);
+  var sep = document.createElement('p');
+  sep.className = 'gap'; body.appendChild(sep);
+  (tail.blocks || []).forEach(function(b, i){
+    var el = document.createElement('p');
+    if(typeof b === 'string'){ if(b === ''){ el.className = 'gap'; } else { el.textContent = b; } }
+    else{ el.className = b.cls; el.textContent = b.t; }
+    el.style.animationDelay = Math.min(1600 + i * 95, 4200) + 'ms';
+    body.appendChild(el);
+  });
+
+  show('s-end');
+  document.getElementById('pane').style.setProperty('--gop', (0.3 + Math.max(0,(g-5.4)/0.9) * 0.5).toFixed(3));
+}
+
+/* ---------------------------------------------------- 声音 */
+var AC = null, droneOn = false, droneNodes = null;
+function ac(){
+  if(AC) return AC;
+  try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ AC = null; }
+  return AC;
+}
+function startDrone(){
+  var c = ac(); if(!c || droneOn) return;
+  if(c.state === 'suspended') c.resume();
+  var g = c.createGain(); g.gain.value = 0; g.connect(c.destination);
+  var a = c.createOscillator(); a.type='sine'; a.frequency.value = 55;
+  var b = c.createOscillator(); b.type='sine'; b.frequency.value = 82.5;
+  var lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 320;
+  a.connect(lp); b.connect(lp); lp.connect(g);
+  a.start(); b.start();
+  g.gain.linearRampToValueAtTime(0.035, c.currentTime + 3);
+  droneOn = true; droneNodes = {a:a,b:b,g:g};
+}
+function stopDrone(){
+  if(!droneNodes || !AC) return;
+  try{ droneNodes.g.gain.linearRampToValueAtTime(0, AC.currentTime + 0.6); }catch(e){}
+  var d = droneNodes;
+  setTimeout(function(){ try{ d.a.stop(); d.b.stop(); }catch(e){} }, 800);
+  droneOn = false; droneNodes = null;
+}
+function blip(freq, dur, type, vol){
+  var c = ac(); if(!c || !droneOn) return;
+  try{
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, c.currentTime);
+    g.gain.linearRampToValueAtTime(vol || 0.06, c.currentTime + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + (dur || 0.2));
+    o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime + (dur || 0.2) + 0.05);
+  }catch(e){}
+}
+function sfxStep(){ blip(140, 0.13, 'sine', 0.045); }
+function sfxTick(){ blip(1180, 0.05, 'sine', 0.022); }
+function sfxEnd(){ blip(196, 1.6, 'sine', 0.09); setTimeout(function(){ blip(147, 2.2, 'sine', 0.07); }, 320); }
+
+/* ---------------------------------------------------- 弹窗 */
+var mask = document.getElementById('mask');
+var dlg = document.getElementById('dlg');
+function closeDlg(){ mask.classList.remove('on'); dlg.innerHTML = ''; }
+mask.addEventListener('click', function(e){ if(e.target === mask) closeDlg(); });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){ closeDlg(); return; }
+  if(mask.classList.contains('on')) return;
+  if(document.getElementById('s-play').classList.contains('on')){
+    var n = parseInt(e.key, 10);
+    if(!isNaN(n) && n >= 1 && n <= ACTS.length){ pick(ACTS[n - 1]); }
+  }
+});
+
+function dlgBtn(label, fn, solid){
+  var b = document.createElement('button');
+  b.className = 'btn' + (solid ? ' solid' : '');
+  b.textContent = label; b.onclick = fn; return b;
+}
+
+function askRestart(){
+  dlg.innerHTML = '';
+  var h = document.createElement('h3'); h.textContent = '再走一夜';
+  var p = document.createElement('p');
+  p.textContent = '今晚会被清空，从第 1 步重新走。已解锁的结局会留着。';
+  var acts = document.createElement('div'); acts.className = 'dlg-acts';
+  acts.appendChild(dlgBtn('再想想', closeDlg));
+  acts.appendChild(dlgBtn('重新开始', function(){ closeDlg(); restart(); }, true));
+  dlg.appendChild(h); dlg.appendChild(p); dlg.appendChild(acts);
+  mask.classList.add('on');
+}
+
+function showGallery(){
+  dlg.innerHTML = '';
+  var h = document.createElement('h3'); h.textContent = '四个结局';
+  var ul = document.createElement('ul'); ul.className = 'gl';
+  ['A','B','C','D'].forEach(function(k){
+    var li = document.createElement('li');
+    if(!GAL[k]) li.className = 'lock';
+    var b = document.createElement('b'); b.textContent = k;
+    var s = document.createElement('s');
+    s.textContent = GAL[k] ? (ENDING_NAME[k] + '　·　玻璃 ' + ENDING_GLASS[k] + ' 厘米') : '未解锁';
+    li.appendChild(b); li.appendChild(s); ul.appendChild(li);
+  });
+  var p = document.createElement('p');
+  var n = ['A','B','C','D'].filter(function(k){ return GAL[k]; }).length;
+  p.textContent = '已解锁 ' + n + ' / 4。同一个真相，四种写法。玻璃停在 5.4 的只有一种。';
+  var acts = document.createElement('div'); acts.className = 'dlg-acts';
+  acts.appendChild(dlgBtn('关闭', closeDlg));
+  dlg.appendChild(h); dlg.appendChild(ul); dlg.appendChild(p); dlg.appendChild(acts);
+  mask.classList.add('on');
+}
+
+function showAbout(){
+  dlg.innerHTML = '';
+  var h = document.createElement('h3'); h.textContent = '装置说明';
+  var ul = document.createElement('ul'); ul.className = 'spec';
+  [
+    ['空间','七个房间。四个嫌疑人各守一间，信息必须走过去才拿得到。'],
+    ['材质','真玻璃。观众侧 5.4cm 夹胶，随剧情推进逐层加插玻璃片，走到 6.1cm。'],
+    ['灯光','三色提问灯带：暖 2700K / 冷 5600K / 全熄。观众用脚踩，不用嘴问。'],
+    ['传感','地胶压力感应 + 毫米波存在检测。站定不动触发「沉默计时」，站满 8 秒，对面角色的灯亮。'],
+    ['声音','四声道定向声场。每个房间只听得见那一个人的呼吸和独白。'],
+    ['时长','单人 12–18 分钟。同时容纳 6 人，动线不交叉。'],
+    ['落点','出口是一张真的登记台。你在纸上写下一个词，那张纸会被收进档案盒。']
+  ].forEach(function(r){
+    var li = document.createElement('li');
+    var b = document.createElement('b'); b.textContent = r[0];
+    var s = document.createElement('s'); s.textContent = r[1];
+    li.appendChild(b); li.appendChild(s); ul.appendChild(li);
+  });
+  var p = document.createElement('p');
+  p.className = 'sm';
+  p.textContent = '线上版保留了全部叙事与分支，把「走路」压缩成平面图上的位移，把「站定 8 秒」压缩成一个可跳过的倒计时。实体版里，这两件事都要你在暗处真的做一遍。';
+  var acts = document.createElement('div'); acts.className = 'dlg-acts';
+  acts.appendChild(dlgBtn('关闭', closeDlg));
+  dlg.appendChild(h); dlg.appendChild(ul); dlg.appendChild(p); dlg.appendChild(acts);
+  mask.classList.add('on');
+}
+
+/* ---------------------------------------------------- 启动 / 重开 */
+function newRun(){
+  S = freshState();
+  S.visits = {'01':1};
+  S.steps = 1;
+  S.cur = '01';
+  S.room = 'hall';
+  var out = P['01'].render(S.v, 1);
+  S.out = {cur:'01', blocks:out.blocks, choices:out.choices};
+  save();
+}
+function enterPlay(){
+  startDrone();
+  show('s-play');
+  paint();
+}
+function restart(){
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  clearReveal();
+  newRun();
+  document.getElementById('pane').style.setProperty('--gop', '0.18');
+  show('s-play');
+  paint();
+}
+
+document.getElementById('b-enter').addEventListener('click', function(){
+  if(!S) newRun();
+  enterPlay();
+});
+document.getElementById('b-rules2').addEventListener('click', function(){ rulesBack = 's-title'; show('s-rules'); });
+document.getElementById('b-rstart').addEventListener('click', function(){
+  if(!S) newRun();
+  enterPlay();
+});
+document.getElementById('b-rback').addEventListener('click', function(){ show(rulesBack); });
+document.getElementById('b-rule').addEventListener('click', function(){
+  var cur = document.querySelector('.screen.on');
+  rulesBack = (cur && (cur.id === 's-play' || cur.id === 's-end')) ? cur.id : 's-title';
+  show('s-rules');
+});
+document.getElementById('b-gl').addEventListener('click', showGallery);
+document.getElementById('b-about').addEventListener('click', showAbout);
+document.getElementById('b-about2').addEventListener('click', showAbout);
+document.getElementById('e-about').addEventListener('click', showAbout);
+document.getElementById('e-gl').addEventListener('click', showGallery);
+document.getElementById('b-re').addEventListener('click', askRestart);
+document.getElementById('e-again').addEventListener('click', function(){ askRestart(); });
+document.getElementById('w-skip').addEventListener('click', function(){ skipWait(); sfxTick(); });
+document.getElementById('b-snd').addEventListener('click', function(){
+  if(droneOn){ stopDrone(); this.textContent = '声音'; }
+  else{ startDrone(); this.textContent = '静音'; }
+});
+document.getElementById('b-resume').addEventListener('click', function(){
+  startDrone();
+  show('s-play');
+  if(ENDINGS[S.cur]){ showEnding(); } else { paint(); }
+});
+
+/* 启动 */
+loadGallery();
+S = load();
+if(S){
+  document.getElementById('resume').style.display = 'block';
+  document.getElementById('r-step').textContent = S.steps || 1;
+}
+show('s-title');
+</script>
+</body>
+</html>
