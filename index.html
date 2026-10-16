@@ -173,6 +173,71 @@ body{
 }
 #stage.on #st-code{opacity:1}
 
+/* ════════ 场景热点：房间里的可交互物件 ════════
+   Steam 叙事游戏的骨架 —— 玩家「看见房间里有个东西，走过去点它」，
+   而不是「读一段文字，从下拉菜单里选」。热点活在 3D 空间里（父层 #depth
+   已 preserve-3d），所以环视时它们按各自 Z 深度产生真实透视位移。 */
+#hotspots{
+  position:fixed;inset:0;z-index:50;pointer-events:none;
+  perspective:900px;perspective-origin:50% 46%;
+}
+.hs-layer{
+  position:absolute;inset:0;transform-style:preserve-3d;
+  transform:rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));
+  transition:transform 140ms linear;      /* 与 #depth 同参数，两者同步转动 */
+}
+.hs{
+  position:absolute;pointer-events:auto;cursor:pointer;
+  width:44px;height:44px;margin:-22px 0 0 -22px;   /* 以坐标点为中心 */
+  border:0;padding:0;background:none;
+  /* 位置由 JS 写 left/top/translate(Z)，此处不写死 */
+}
+.hs::before{                       /* 外圈：缓慢呼吸的光晕 */
+  content:"";position:absolute;inset:6px;border-radius:50%;
+  border:1px solid rgba(214,178,110,.52);
+  animation:hs-pulse 3.4s ease-in-out infinite;
+}
+.hs::after{                        /* 内芯：实心微光点 */
+  content:"";position:absolute;left:50%;top:50%;
+  width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;
+  background:rgba(226,196,132,.92);
+  box-shadow:0 0 9px 2px rgba(214,178,110,.55), 0 0 22px 6px rgba(214,178,110,.22);
+}
+@keyframes hs-pulse{
+  0%,100%{transform:scale(.86);opacity:.42}
+  50%{transform:scale(1.12);opacity:.92}
+}
+/* 看过的物件：光晕转为暗金，不再脉冲 —— 玩家能看出「这间房还剩什么没查」 */
+.hs.seen::before{animation:none;opacity:.30;border-color:rgba(150,132,96,.5)}
+.hs.seen::after{background:rgba(150,132,96,.62);box-shadow:none}
+/* 悬停/聚焦：放大并提亮（桌面 hover + 移动 :active） */
+.hs:hover::before,.hs:active::before{transform:scale(1.3);opacity:1;border-color:rgba(240,214,158,.95)}
+.hs:hover::after,.hs:active::after{box-shadow:0 0 14px 4px rgba(240,214,158,.75)}
+@media (prefers-reduced-motion:reduce){ .hs::before{animation:none} }
+
+/* 热点检视卡 */
+#hs-tip{
+  position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,5,7,.62);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .28s ease;
+}
+#hs-tip.on{opacity:1;pointer-events:auto}
+.hs-in{
+  width:min(84vw,340px);padding:22px 20px 16px;
+  background:linear-gradient(168deg,rgba(22,25,31,.97),rgba(12,14,18,.97));
+  border:1px solid rgba(214,178,110,.34);border-radius:3px;
+  box-shadow:0 18px 60px rgba(0,0,0,.7);
+}
+.hs-k{font-family:var(--sans);font-size:9px;letter-spacing:.32em;color:rgba(201,162,94,.72);text-transform:uppercase}
+.hs-n{font-family:var(--serif);font-size:19px;color:#e8dcc4;margin:9px 0 12px;letter-spacing:.06em}
+.hs-d{font-size:13.5px;line-height:1.95;color:rgba(214,206,190,.86);text-align:justify}
+.hs-foot{
+  margin-top:16px;padding-top:11px;border-top:1px solid rgba(214,178,110,.18);
+  font-family:var(--sans);font-size:9.5px;letter-spacing:.28em;
+  color:rgba(190,172,140,.62);text-align:center;
+}
+.hs-foot i{display:inline-block;width:16px;height:1px;background:rgba(214,178,110,.4);vertical-align:middle;margin:0 9px}
+
 /* ============ 玻璃层（随厚度加深） ============ */
 #pane{
   position:fixed;inset:0;z-index:60;pointer-events:none;
@@ -399,6 +464,26 @@ body{
 }
 .rl-note b{color:var(--gold);font-weight:400}
 .rl-acts{text-align:center;padding-bottom:40px}
+/* ── 前情提要（评审用长文）── */
+.bf-block{margin:0 0 26px;text-align:justify}
+.bf-block h3{
+  font-family:var(--sans);font-size:11px;letter-spacing:.22em;font-weight:600;
+  color:var(--gold2);margin:0 0 10px;padding-bottom:7px;
+  border-bottom:1px solid rgba(201,162,94,.22);
+}
+.bf-block p{margin:0 0 .72em;font-size:14px;line-height:2;color:rgba(216,208,192,.9)}
+.bf-block p:last-child{margin-bottom:0}
+.bf-block b{color:#e6d9bd;font-weight:600}
+.bf-ul{margin:8px 0 0;padding:0;list-style:none}
+.bf-ul li{
+  position:relative;padding-left:15px;margin-bottom:.62em;
+  font-size:13.5px;line-height:1.95;color:rgba(210,202,186,.88);text-align:justify;
+}
+.bf-ul li::before{
+  content:"";position:absolute;left:2px;top:.72em;
+  width:4px;height:1px;background:rgba(201,162,94,.62);
+}
+.bf-ul li b{color:#e6d9bd;font-weight:600}
 
 /* ============ 平面图 ============ */
 #planwrap{
@@ -1077,6 +1162,19 @@ html.lowfx2 .rc-card{box-shadow:0 1px 0 rgba(255,255,255,.07),0 2px 0 rgba(6,8,1
   <div id="st-code"></div>
  </div>
 </div>
+<!-- 场景热点：房间里的可交互物件。
+     ⚠ 刻意放在 #stage 之外：#stage 是 z-index:0 的 stacking context，
+       若放进里面会被文字层 #app（z-index:2）盖住而点不到。
+       独立成层后 z-index:50 浮在文字之上；3D 靠自身 perspective +
+       与 #depth 共用同一组 --ry/--rx 变量，旋转天然同步。 -->
+<div id="hotspots"><div class="hs-layer" id="hs-layer"></div></div>
+<!-- 热点检视卡：点物件后浮现的「这件东西的来龙去脉」 -->
+<div id="hs-tip" aria-hidden="true"><div class="hs-in">
+  <div class="hs-k" id="hs-k"></div>
+  <div class="hs-n" id="hs-n"></div>
+  <div class="hs-d" id="hs-d"></div>
+  <div class="hs-foot"><i></i>轻 触 关 闭<i></i></div>
+</div></div>
 
 <!-- 揭示卡：人物立绘 / 历史档案 -->
 <div id="rc">
@@ -1138,6 +1236,7 @@ html.lowfx2 .rc-card{box-shadow:0 1px 0 rgba(255,255,255,.07),0 2px 0 rgba(6,8,1
     <div style="margin-top:20px">
       <button class="btn-ghost" id="b-rules2">先看规则</button>
       <button class="btn-ghost" id="b-about">装置说明</button>
+      <button class="btn-ghost" id="b-brief">前情提要</button>
     </div>
     <div id="resume" style="display:none">
       <div class="tt-resume" id="b-resume">继续上一夜 · 第 <b id="r-step">1</b> 步</div>
@@ -1188,6 +1287,86 @@ html.lowfx2 .rc-card{box-shadow:0 1px 0 rgba(255,255,255,.07),0 2px 0 rgba(6,8,1
     <div class="rl-acts">
       <button class="btn-main" id="b-rstart">进 入 展 厅</button>
       <button class="btn-ghost" id="b-rback">返回</button>
+    </div>
+    <div style="height:30px"></div>
+  </section>
+
+  <!-- ============ 前情提要（指导老师 / 评审用） ============ -->
+  <section class="screen" id="s-brief">
+    <div class="rl-head">
+      <h2>前 情 提 要</h2>
+      <p>给指导老师：这个项目从哪来、做成什么、怎么实现的。</p>
+    </div>
+
+    <div class="bf-block">
+      <h3>一 · 这是什么</h3>
+      <p>《今晚玻璃还在，但信任碎了》是一件<b>可玩的互动叙事装置</b>——它有一个实体展厅方案做底子，最终交付形态是<b>一个网页</b>：微信扫码即可进入，不需要下载。</p>
+      <p>玩家扮演一名夜间到馆的调查者。展厅里有四个人、七个空间、一块厚度对不上的玻璃。你要做的不是找出小偷，而是决定<b>信任谁、以及怎么写下结论</b>。</p>
+    </div>
+
+    <div class="bf-block">
+      <h3>二 · 缘起：从装置方案到可玩游戏</h3>
+      <p>起点是一份<b>实体装置舞美方案</b>（展厅动线、灯光相位、六个房间的空间关系）。方案本身是静态的、纸面的——它能被阅读，但不能被体验。</p>
+      <p>本轮工作的核心命题是：<b>把装置方案真正做进游戏里</b>，让六个房间从"方案册上的方块"变成"你站在里面的空间"。这解决了此前"网页文字游戏 + 方案册"两张皮的问题。</p>
+    </div>
+
+    <div class="bf-block">
+      <h3>三 · 七个空间</h3>
+      <p>六个主房间加一条隐藏走廊，每个空间的光线、声音、可交互物件都不同：</p>
+      <ul class="bf-ul">
+        <li><b>画厅</b>　《蒙娜丽莎》与罩着它的防弹玻璃——全剧的物理题眼</li>
+        <li><b>监控室</b>　六联屏，第四块是雪花。01:43 之后它什么都没录到</li>
+        <li><b>修复台</b>　紫外灯与工具，少了一把编号 R-07 的刮刀</li>
+        <li><b>策展办公室</b>　一份没有归档的借展函</li>
+        <li><b>中央</b>　六把椅子，说出口的话会立刻变成别人的证据</li>
+        <li><b>出口</b>　落笔的地方。笔是馆里提供的，纸也是</li>
+        <li><b>东侧走廊</b>　平面图上不存在的门，唯一的摄像头盲区</li>
+      </ul>
+    </div>
+
+    <div class="bf-block">
+      <h3>四 · 玩法：三个动作</h3>
+      <p><b>走</b>——谁待在哪个房间，决定你能听见谁的哪一段话。<br>
+         <b>看</b>——站定不动让沉默发生，你越不开口，对面说得越多。<br>
+         <b>问</b>——同一个问题三种光：暖光换真心，冷光换事实，熄灯换他们憋不住的那句。</p>
+      <p>玩家没有血量与失败，只有<b>四个人的信任值</b>和<b>一块玻璃的厚度</b>。四个结局的差别不在真相——真相只有一个——在你怎么写它。</p>
+    </div>
+
+    <div class="bf-block">
+      <h3>五 · 本轮的技术实现</h3>
+      <ul class="bf-ul">
+        <li><b>3D 纵深</b>　舞台加了透视镜头（perspective 900px），房间被拆成六个深度层：后墙 −150px、空间光 −110px、介质 −70px、蒙纱 −30px、浮尘 0、镜头暗角 +50px。倾斜手机时各层按深度差产生真实透视位移，不是贴图平移。</li>
+        <li><b>自由环视</b>　手指拖动即可在房间里转头看（±26°），陀螺仪提供额外的被动感知，两者叠加。</li>
+        <li><b>场景热点</b>　房间里放了可点击的物件（画、玻璃罩、监视屏、紫外灯……），点开是这件东西的来龙去脉；看过的物件会转为暗金，玩家能看出这间房还剩什么没查。</li>
+        <li><b>随剧情变动</b>　六阶段状态机驱动光、尘、色温、颗粒与玻璃厚度——空间氛围跟着叙事走，不是读一段文字换一张图。</li>
+        <li><b>降级与兼容</b>　六级性能降级阶梯；尊重系统"减弱动效"偏好；全站零外部请求，微信内置浏览器可直接打开。</li>
+      </ul>
+    </div>
+
+    <div class="bf-block">
+      <h3>六 · 历史真实性与素材授权</h3>
+      <p>面对历史题材，本轮的原则是<b>拒绝通用模型敷衍</b>：</p>
+      <ul class="bf-ul">
+        <li>《蒙娜丽莎》画心采用<b>卢浮宫 C2RMF 官方扫描件</b>（公有领域），不是 AI 仿作。</li>
+        <li>房间实景优先取<b>公有领域真实照片</b>（PD / CC0 / PDM），逐张记录来源与授权。</li>
+        <li>授权白名单分级：PD/CC0 免署名；CC-BY 允许但强制署名；<b>含 SA / NC / ND 的一律拒用</b>（SA 有传染性、ND 禁止演绎、NC 与展陈场景冲突）。</li>
+        <li>虚构人物立绘为 AI 生成影像，<b>不指涉任何真实个人</b>，并在署名区块中明确标注。</li>
+      </ul>
+    </div>
+
+    <div class="bf-block">
+      <h3>七 · 观看建议</h3>
+      <p>建议用手机微信扫码打开（竖屏体验最佳）。进入展厅后：</p>
+      <ul class="bf-ul">
+        <li>用手指左右拖动，可环视整间房；</li>
+        <li>留意画面上微微发光的圆点，那是可点的物件；</li>
+        <li>把手机拿在手里自然倾斜，空间会跟着你的手转。</li>
+      </ul>
+    </div>
+
+    <div class="rl-acts">
+      <button class="btn-main" id="b-bstart">进 入 展 厅</button>
+      <button class="btn-ghost" id="b-bback">返回</button>
     </div>
     <div style="height:30px"></div>
   </section>
@@ -2855,6 +3034,10 @@ function paint(out){
     (cd && ASET[cd.img] ? '<img class="rc-chip" src="' + ASET[cd.img] + '" alt="">' : '') +
     P[S.cur].act + '　·　' + (RINFO[rm] || RINFO.hall).n + '　·　' + P[S.cur].name;
 
+  /* 场景热点：进房间就刷新成这间房的物件；视角回正（上一间的朝向不带过来） */
+  try{ renderHotspots(rm); }catch(e){}
+  try{ if(window.lookReset) window.lookReset(); }catch(e){}
+
   /* 揭示卡：先出档案照片，再出人物立绘（每张只出一次） */
   if(!S.seen) S.seen = {};
   var marked = false;
@@ -3710,6 +3893,10 @@ function showAbout(){
   mask.classList.add('on');
 }
 
+/* 前情提要 / 创作简报：不走弹窗，走独立的 s-brief 场景页（首页「前情提要」按钮 → show('s-brief')）。
+   那一页已含七章：这是什么 / 缘起 / 七个空间 / 玩法 / 技术实现 / 历史真实性与素材授权 / 观看建议。
+   与「装置说明」（showAbout，弹窗）分工：那栏讲舞美与技术规格，这栏讲故事与考据。 */
+
 /* ---------------------------------------------------- 启动 / 重开 */
 function newRun(){
   S = freshState();
@@ -3738,15 +3925,20 @@ var _px = 0, _py = 0, _tpx = 0, _tpy = 0, _rafId = null, _tiltOn = false;
 /* ── 3D 纵深：旋转量（度）。与平移同源，但独立阻尼 —— 旋转比平移更需要平滑，
       否则手机微抖会放大成画面晃动。上限 ±5.5° / ±4.5°：够产生透视，不至于畸变。── */
 var _rx = 0, _ry = 0, _trx = 0, _try = 0;
-var RY_MAX = 5.5, RX_MAX = 4.5;
+/* RY_MAX 放到 30°：陀螺仪自身只用到 ±5.5°，余下的额度留给【手动环视】。
+   玩家手指拖动可以主动把视角转到 ±26°，这才是「我在房间里转头看」。 */
+var RY_MAX = 30, RX_MAX = 4.5;
+var _lookY = 0, LOOK_MAX = 26;      /* 手动环视累积角（度）*/
 
 function parallaxApply(){
   var r = document.documentElement.style;
   r.setProperty('--px', _px.toFixed(2) + 'px');
   r.setProperty('--py', _py.toFixed(2) + 'px');
   /* 3D 纵深：把倾斜量映射成绕轴旋转。这是「立体式」的关键 —— 平移只能造出
-     层间错位，旋转才能造出真实的透视收敛（近处墙面向侧面退去）。 */
-  r.setProperty('--ry', _ry.toFixed(3) + 'deg');
+     层间错位，旋转才能造出真实的透视收敛（近处墙面向侧面退去）。
+     最终角 = 陀螺仪/鼠标的自动量 + 手指拖动的环视量，合并后再夹到上限。 */
+  var ryTot = Math.max(-RY_MAX, Math.min(RY_MAX, _ry + _lookY));
+  r.setProperty('--ry', ryTot.toFixed(3) + 'deg');
   r.setProperty('--rx', _rx.toFixed(3) + 'deg');
 }
 function parallaxLoop(){
@@ -3826,10 +4018,153 @@ function parallaxOff(){
   r.setProperty('--px', '0px'); r.setProperty('--py', '0px');
   r.setProperty('--rx', '0deg'); r.setProperty('--ry', '0deg');
   _tpx = _tpy = _px = _py = 0;
-  _trx = _try = _rx = _ry = 0;
+  _trx = _try = _rx = _ry = 0; _lookY = 0;
   if(_rafId){ cancelAnimationFrame(_rafId); _rafId = null; }
   try{ window.removeEventListener('deviceorientation', onOrient); }catch(e){}
   _tiltOn = false;
+}
+
+/* ════════════════════════════════════════════════════════════
+   自由环视 + 场景热点 —— 把「读视觉小说」变成「在房间里走看」
+   ════════════════════════════════════════════════════════════ */
+
+/* ── ① 自由环视：手指左右拖动 = 转动视角 ──
+   陀螺仪只能被动感知（±5.5°），那是「画面跟着手机动」；
+   拖动才是「我在房间里转头看」。两者叠加，合并后夹到 RY_MAX。 */
+(function(){
+  var dk = null, base = 0, moved = 0;
+  function inGameNow(){
+    var s = document.getElementById('s-play');
+    return s && s.classList.contains('on');
+  }
+  /* 不抢走按钮/选项/热点上的手势 —— 否则拖拽会吃掉点击 */
+  function isInteractive(t){
+    if(!t || !t.closest) return false;
+    return !!(t.closest('button') || t.closest('.opt') || t.closest('.hs')
+              || t.closest('#hs-tip') || t.closest('#hud'));
+  }
+  function start(x){ if(!inGameNow()) return; dk = x; base = _lookY; moved = 0; }
+  function move(x){
+    if(dk === null) return;
+    var dx = x - dk; moved = Math.max(moved, Math.abs(dx));
+    var w = window.innerWidth || 390;
+    /* 拖过约 40% 屏宽 = 转到满舵；2.4 是手感系数（略快于 1:1，省力） */
+    _lookY = Math.max(-LOOK_MAX, Math.min(LOOK_MAX, base + dx / w * LOOK_MAX * 2.4));
+    parallaxApply();
+  }
+  function end(){ dk = null; }
+  document.addEventListener('touchstart', function(e){
+    if(isInteractive(e.target)) return;
+    if(e.touches && e.touches[0]) start(e.touches[0].clientX);
+  }, {passive:true});
+  document.addEventListener('touchmove', function(e){
+    if(dk === null) return;
+    if(e.touches && e.touches[0]) move(e.touches[0].clientX);
+  }, {passive:true});
+  document.addEventListener('touchend', end, {passive:true});
+  document.addEventListener('touchcancel', end, {passive:true});
+  /* 桌面：鼠标按住拖动同样可以环视 */
+  var mdown = false;
+  document.addEventListener('mousedown', function(e){
+    if(isInteractive(e.target)) return;
+    mdown = true; start(e.clientX);
+  });
+  document.addEventListener('mousemove', function(e){ if(mdown) move(e.clientX); });
+  document.addEventListener('mouseup', function(){ mdown = false; end(); });
+
+  /* 进房间时视角回正 —— 上一间的朝向不该带进下一间 */
+  window.lookReset = function(){ _lookY = 0; parallaxApply(); };
+})();
+
+/* ── ② 场景热点：房间里可点的物件 ──
+   坐标 x/y 是画面百分比，z 是 3D 深度（负=更远，与底图层同一坐标系）。
+   放在 #depth 内 ⇒ 环视时自动产生透视位移，不需要手动算屏幕位置。 */
+var HOTSPOTS = {
+  hall: [
+    {id:'mona',  x:50, y:27, z:-45, k:'LA GIORCONDA', n:'《蒙娜丽莎》',
+     d:'卢浮宫 C2RMF 官方扫描件复刻。杨木板，77×53cm，1503–1519。此刻它还在墙上——但今晚真正该看的不是画，是罩着它的那层玻璃。'},
+    {id:'glass', x:29, y:52, z:-12, k:'SECURIT GLASS', n:'防弹玻璃罩',
+     d:'5.4mm 双层夹胶，2019 年整体换新。今晨的巡检记录却写着 6.1mm。差的这 0.7mm，没有任何人签字确认过。'},
+    {id:'rail',  x:71, y:17, z:-30, k:'LIGHTING', n:'射灯轨道',
+     d:'三组轨道灯，色温 3000K。第三组的角度被人动过——它现在照的不再是画，是玻璃本身。'}
+  ],
+  cctv: [
+    {id:'scr', x:50, y:31, z:-40, k:'MONITOR WALL', n:'六联监视屏',
+     d:'六块屏，五块有画面。第四块是雪花——01:43 之后，它什么都没再录到。'},
+    {id:'tc',  x:69, y:46, z:-22, k:'TIMECODE', n:'时间码 01:43',
+     d:'全部录像在 01:43 中断，01:47 恢复。中间这四分钟，这座馆里没有一双电子眼睛。'},
+    {id:'log', x:26, y:57, z:-18, k:'DUTY LOG', n:'值班表',
+     d:'马库斯，22 岁，今晚独自值守。他的名字后面跟着一个被涂改过的签名。'}
+  ],
+  restore: [
+    {id:'uv',    x:41, y:29, z:-35, k:'UV LAMP', n:'紫外灯',
+     d:'365nm，用来照清漆层下的旧修补。艾达今晚用它看过画，也用它看过别的东西。'},
+    {id:'tools', x:61, y:49, z:-20, k:'TOOLS', n:'修复工具',
+     d:'貂毛刷、树脂、溶剂，一应俱全。少了一把刮刀——编号 R-07，最后一次借出记录在昨夜。'}
+  ],
+  office: [
+    {id:'desk', x:50, y:43, z:-30, k:'DESK', n:'写字台',
+     d:'十八世纪样式，亨利·45 的办公桌。抽屉里压着一份没有归档的借展函。'},
+    {id:'cab',  x:24, y:33, z:-25, k:'ARCHIVE', n:'档案柜',
+     d:'1970 年至今的全部借展记录。第三个抽屉的锁，是新的。'}
+  ],
+  center: [
+    {id:'chair', x:50, y:40, z:-30, k:'CENTER', n:'对质的座位',
+     d:'六个人，六把椅子。坐在这里的人说出的每一句话，都会立刻变成别人的证据。'}
+  ],
+  exit: [
+    {id:'sign', x:50, y:46, z:-28, k:'GATE', n:'签字台',
+     d:'离开之前要写下那个词。笔是馆里提供的，纸也是。'}
+  ],
+  corridor: [
+    {id:'door', x:62, y:37, z:-55, k:'EAST CORRIDOR', n:'走廊尽头的门',
+     d:'平面图上没有这扇门。它通向东侧走廊——整座馆里唯一的摄像头盲区。'}
+  ]
+};
+var HS_SEEN = {};                       /* 已查看过的物件：hotspotKey -> 1 */
+
+var hsBox = null, hsTip = null;
+function hsInit(){
+  /* 渲染目标 = .hs-layer（承载 rotate 的那一层），不是外层 #hotspots */
+  hsBox = document.getElementById('hs-layer');
+  hsTip = document.getElementById('hs-tip');
+  if(hsTip) hsTip.addEventListener('click', function(){ hsTip.classList.remove('on'); });
+}
+function renderHotspots(room){
+  if(!hsBox) hsInit();
+  if(!hsBox) return;
+  var list = HOTSPOTS[room] || [];
+  hsBox.innerHTML = '';
+  if(!list.length) return;
+  for(var i=0;i<list.length;i++){
+    var h = list[i];
+    var b = document.createElement('button');
+    b.className = 'hs' + (HS_SEEN[room + '.' + h.id] ? ' seen' : '');
+    b.type = 'button';
+    b.setAttribute('aria-label', h.n);
+    b.style.left = h.x + '%';
+    b.style.top  = h.y + '%';
+    /* Z 深度：与底图层同一 3D 空间（父层 #depth 已 preserve-3d） */
+    b.style.transform = 'translateZ(' + h.z + 'px)';
+    (function(hh, roomKey, btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        HS_SEEN[roomKey + '.' + hh.id] = 1;
+        btn.classList.add('seen');
+        showHsTip(hh);
+        try{ if(typeof sfxTick === 'function') sfxTick(); }catch(e){}
+      });
+    })(h, room, b);
+    hsBox.appendChild(b);
+  }
+}
+function showHsTip(h){
+  if(!hsTip) return;
+  var k = document.getElementById('hs-k'), n = document.getElementById('hs-n'), d = document.getElementById('hs-d');
+  if(k) k.textContent = h.k || '';
+  if(n) n.textContent = h.n || '';
+  if(d) d.textContent = h.d || '';
+  hsTip.classList.add('on');
 }
 try{
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) parallaxOff();
@@ -3837,6 +4172,7 @@ try{
 
 function enterPlay(){
   startDrone();
+  try{ hsInit(); }catch(e){}
   show('s-play');
   paint();
   try{ setTimeout(sfxEnter, 300); }catch(e){}   /* E0 推门入场 */
@@ -3870,6 +4206,10 @@ document.getElementById('b-rule').addEventListener('click', function(){
 });
 document.getElementById('b-gl').addEventListener('click', showGallery);
 document.getElementById('b-about').addEventListener('click', showAbout);
+/* 前情提要：给指导老师 / 评审看的项目说明 */
+document.getElementById('b-brief').addEventListener('click', function(){ show('s-brief'); });
+document.getElementById('b-bstart').addEventListener('click', function(){ if(!S) newRun(); enterPlay(); });
+document.getElementById('b-bback').addEventListener('click', function(){ show('s-title'); });
 document.getElementById('b-about2').addEventListener('click', showAbout);
 document.getElementById('e-about').addEventListener('click', showAbout);
 document.getElementById('e-gl').addEventListener('click', showGallery);
